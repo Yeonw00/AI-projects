@@ -1,31 +1,87 @@
 package com.example.newssummary.util;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.util.NoSuchElementException;
+import java.util.concurrent.TimeoutException;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 public class HtmlParser {
-	public static String extractArticle(String url) throws IOException {
-		Document doc = Jsoup.connect(url).get();
-		if (url.contains("mksports.co.kr")) {
-			Elements articleDiv = doc.select("div.art_txt");
-	        if (articleDiv.isEmpty()) return "";
+//	public static String extractArticle(String url) throws IOException {
+//		Document doc = Jsoup.connect(url)
+//				.userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36")
+//				.get();
+//		if (url.contains("mksports.co.kr")) {
+//			Elements paragraphs = doc.select("div.art_txt p"); // 모든 요소 가져오기
+//			System.out.println("전체 요소 수: " + paragraphs.size());
+//		    StringBuilder content = new StringBuilder();
+//		    for (Element p : paragraphs) {
+//		        content.append(p.text()).append(" ");
+//		    }
+//		    return content.toString().trim();
+//		} else {
+//			Elements paragraphs = doc.select("div.article__content p"); // 기사 본문 p 태그 기반(광고나 댓글은 거름)
+//			StringBuilder content = new StringBuilder();
+//			for (Element p : paragraphs) {
+//				content.append(p.text()).append(" ");
+//			}
+//			return content.toString().trim();
+//		}
+//	}
+	
+	public static String extractArticle(String url) throws IOException, TimeoutException {
+		// chromedriver 경로 설정
+	    System.setProperty("webdriver.chrome.driver", "C:\\tools\\chromedriver.exe");
 
-	        StringBuilder content = new StringBuilder();
-	        for (Element p : articleDiv.select("p")) {
-	            content.append(p.text()).append("\n");
+	    // Headless 옵션 추가 (선택사항)
+	    ChromeOptions options = new ChromeOptions();
+	    options.addArguments("--headless=new"); // 최신 방식의 headless
+	    options.addArguments("--disable-gpu");
+	    options.addArguments("--no-sandbox");
+
+	    WebDriver driver = new ChromeDriver(options); // 여기서 드라이버 생성
+
+	    try {
+	        driver.get(url);
+	        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+
+	        String content = "";
+
+	        if (url.contains("n.news.naver.com")) {
+	            // 네이버 뉴스
+	            wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("#dic_area")));
+	            WebElement contentDiv = driver.findElement(By.cssSelector("#dic_area"));
+	            content = contentDiv.getText();
+
+	        } else if (url.contains("mksports.co.kr")) {
+	            // MK스포츠
+	            wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div.art_txt")));
+	            WebElement contentDiv = driver.findElement(By.cssSelector("div.art_txt"));
+	            content = contentDiv.getText();
+
+	        } else {
+	            content = "지원되지 않는 URL입니다.";
 	        }
-	        return content.toString().trim();
-		} else {
-			Elements paragraphs = doc.select("div.article__content p"); // 기사 본문 p 태그 기반(광고나 댓글은 거름)
-			StringBuilder content = new StringBuilder();
-			for (Element p : paragraphs) {
-				content.append(p.text()).append(" ");
-			}
-			return content.toString().trim();
-		}
+
+	        System.out.println("기사 길이: " + content.length());
+	        System.out.println("내용:\n" + content);
+	        return content.trim();
+
+	    } catch (NoSuchElementException e) {
+	        System.err.println("❌ 요소를 찾을 수 없습니다: " + e.getMessage());
+	    } catch (Exception e) {
+	        System.err.println("❌ 예외 발생: " + e.getMessage());
+	    } finally {
+	        driver.quit(); // 무조건 드라이버 종료
+	    }
+
+	    return "";
 	}
 }
