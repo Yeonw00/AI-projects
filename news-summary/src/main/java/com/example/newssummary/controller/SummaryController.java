@@ -39,11 +39,14 @@ public class SummaryController {
 	}
 	
 	@PostMapping("/openai")
-	public ResponseEntity<String> summarizeOpenAi(@RequestBody SummaryRequest request) {
+	public ResponseEntity<String> summarizeByUrl(@RequestBody SummaryRequest request) {
 		try {
-			String content = HtmlParser.extractArticle(request.getUrl());
-			System.out.println("기사 길이: " + content.length());
-		    System.out.println("내용:\n" + content);
+			String content = null;
+			if(request.getUrl() != null) {
+				content = HtmlParser.extractArticle(request.getUrl());
+			} else if(request.getContent() != null) {
+				content = request.getContent();
+			}
 			if (content == null || content.trim().isEmpty()) {
 			    return ResponseEntity.status(400).body("기사 본문을 추출하지 못했습니다. 다른 URL을 시도해주세요.");
 			}

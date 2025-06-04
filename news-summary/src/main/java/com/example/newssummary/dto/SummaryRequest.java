@@ -1,12 +1,9 @@
 package com.example.newssummary.dto;
 
-import jakarta.validation.constraints.NotBlank;
-
 public class SummaryRequest {
 	
 	private String url;
 	
-	@NotBlank
 	private String content;
 
 	public String getUrl() {
