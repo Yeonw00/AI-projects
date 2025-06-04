@@ -39,7 +39,7 @@ public class SummaryController {
 	}
 	
 	@PostMapping("/openai")
-	public ResponseEntity<String> summarizeByUrl(@RequestBody SummaryRequest request) {
+	public ResponseEntity<String> summarizeOpenAi(@RequestBody SummaryRequest request) {
 		try {
 			String content = null;
 			if(request.getUrl() != null) {
