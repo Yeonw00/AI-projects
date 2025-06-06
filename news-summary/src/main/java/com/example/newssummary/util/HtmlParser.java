@@ -2,18 +2,16 @@ package com.example.newssummary.util;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 
-import org.openqa.selenium.By;
+import org.jsoup.Jsoup;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
+
+import net.dankito.readability4j.Article;
+import net.dankito.readability4j.Readability4J;
 
 public class HtmlParser {
 //	public static String extractArticle(String url) throws IOException {
@@ -49,34 +47,23 @@ public class HtmlParser {
 	    options.addArguments("--disable-gpu");
 	    options.addArguments("--no-sandbox");
 
-	    Map<String, String> domainSelectorMap = new HashMap<>();
-	    domainSelectorMap.put("n.news.naver.com", "#dic_area");
-	    domainSelectorMap.put("mksports.co.kr", "div.art_txt");
-	    domainSelectorMap.put("yna.co.kr", "div.story-news.article");
-
 	    try {
 	    	driver = new ChromeDriver();
-	        driver.get(url);
-	        
-	        String matchedSelector = null;
-	        for(Map.Entry<String, String> entry : domainSelectorMap.entrySet()) {
-	        	if(url.contains(entry.getKey())) {
-	        		matchedSelector = entry.getValue();
-	        		break;
-	        	}
+	    	driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(30));
+	    	driver.get(url);
+	    	
+	    	// JavaScript 렌더링 완료 후 페이지 소스를 가져옴
+	    	String html = driver.getPageSource();
+	    	
+	    	// Readability4J 방식으로 본문 추출
+	    	Readability4J readability4J = new Readability4J(url, html);
+	    	Article article = readability4J.parse();
+	    	
+	    	if (article != null && article.getTextContent() != null) {
+	            return article.getTextContent().trim();
+	        } else {
+	            return "본문을 추출하지 못했습니다.";
 	        }
-	        
-	        if(matchedSelector == null) {
-	        	return "지원되지 않는 언론사 URL입니다.";
-	        }
-	        
-	        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-	        wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(matchedSelector)));
-	        WebElement contentDiv = driver.findElement(By.cssSelector(matchedSelector));
-	        String content = contentDiv.getText();
-
-	        return content.trim();
-
 	    } catch (NoSuchElementException e) {
 	        System.err.println("요소를 찾을 수 없습니다: " + e.getMessage());
 	    } catch (Exception e) {
