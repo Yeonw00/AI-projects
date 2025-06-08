@@ -6,6 +6,7 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 
 import org.jsoup.Jsoup;
+import org.openqa.selenium.PageLoadStrategy;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -46,9 +47,11 @@ public class HtmlParser {
 	    options.addArguments("--headless=new"); // 최신 방식의 headless
 	    options.addArguments("--disable-gpu");
 	    options.addArguments("--no-sandbox");
+	    options.addArguments("--disable-dev-shm-usage");
+	    options.setPageLoadStrategy(PageLoadStrategy.NORMAL);
 
 	    try {
-	    	driver = new ChromeDriver();
+	    	driver = new ChromeDriver(options);
 	    	driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(30));
 	    	driver.get(url);
 	    	

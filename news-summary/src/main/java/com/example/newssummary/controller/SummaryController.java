@@ -2,6 +2,7 @@ package com.example.newssummary.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,6 +12,7 @@ import com.example.newssummary.dto.SummaryRequest;
 import com.example.newssummary.service.SummaryService;
 import com.example.newssummary.util.HtmlParser;
 
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/api/summary")
 public class SummaryController {
