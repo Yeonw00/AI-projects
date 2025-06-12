@@ -39,4 +39,75 @@ public class SummaryRequest {
 	
 	@OneToMany(mappedBy = "summaryRequest")
 	private List<SavedSummary> savedSummaries;
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public User getUser() {
+		return user;
+	}
+
+	public void setUser(User user) {
+		this.user = user;
+	}
+
+	public String getOriginalUrl() {
+		return originalUrl;
+	}
+
+	public void setOriginalUrl(String originalUrl) {
+		this.originalUrl = originalUrl;
+	}
+
+	public String getOriginalContent() {
+		return originalContent;
+	}
+
+	public void setOriginalContent(String originalContent) {
+		this.originalContent = originalContent;
+	}
+
+	public String getSummaryResult() {
+		return summaryResult;
+	}
+
+	public void setSummaryResult(String summaryResult) {
+		this.summaryResult = summaryResult;
+	}
+
+	public String getSourceSite() {
+		return sourceSite;
+	}
+
+	public void setSourceSite(String sourceSite) {
+		this.sourceSite = sourceSite;
+	}
+
+	public LocalDateTime getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(LocalDateTime createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public List<SavedSummary> getSavedSummaries() {
+		return savedSummaries;
+	}
+
+	public void setSavedSummaries(List<SavedSummary> savedSummaries) {
+		this.savedSummaries = savedSummaries;
+	}
+
+	@Override
+	public String toString() {
+		return "SummaryRequest [id=" + id + ", user=" + user + ", originalUrl=" + originalUrl + ", originalContent="
+				+ originalContent + ", summaryResult=" + summaryResult + ", sourceSite=" + sourceSite + ", createdAt="
+				+ createdAt + ", savedSummaries=" + savedSummaries + "]";
+	}
 }

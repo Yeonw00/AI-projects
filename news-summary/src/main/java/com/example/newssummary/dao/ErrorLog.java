@@ -33,4 +33,58 @@ public class ErrorLog {
 	private String requestData;
 	
 	private LocalDateTime loggedAt;
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public User getUser() {
+		return user;
+	}
+
+	public void setUser(User user) {
+		this.user = user;
+	}
+
+	public String getErrorMessage() {
+		return errorMessage;
+	}
+
+	public void setErrorMessage(String errorMessage) {
+		this.errorMessage = errorMessage;
+	}
+
+	public String getStackTrace() {
+		return stackTrace;
+	}
+
+	public void setStackTrace(String stackTrace) {
+		this.stackTrace = stackTrace;
+	}
+
+	public String getRequestData() {
+		return requestData;
+	}
+
+	public void setRequestData(String requestData) {
+		this.requestData = requestData;
+	}
+
+	public LocalDateTime getLoggedAt() {
+		return loggedAt;
+	}
+
+	public void setLoggedAt(LocalDateTime loggedAt) {
+		this.loggedAt = loggedAt;
+	}
+
+	@Override
+	public String toString() {
+		return "ErrorLog [id=" + id + ", user=" + user + ", errorMessage=" + errorMessage + ", stackTrace=" + stackTrace
+				+ ", requestData=" + requestData + ", loggedAt=" + loggedAt + "]";
+	}
 }

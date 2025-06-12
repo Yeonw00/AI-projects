@@ -39,7 +39,25 @@
 		    <groupId>org.springframework.boot</groupId>
 		    <artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
-		
+
+	    <!-- Spring Security -->
+	    <dependency>
+	        <groupId>org.springframework.boot</groupId>
+	        <artifactId>spring-boot-starter-security</artifactId>
+	    </dependency>
+	
+	    <!-- Spring Security에서 사용할 PasswordEncoder (BCrypt) -->
+	    <dependency>
+	        <groupId>org.springframework.security</groupId>
+	        <artifactId>spring-security-crypto</artifactId>
+	    </dependency>
+	
+	    <!-- JSON 직렬화/역직렬화를 위한 Jackson -->
+	    <dependency>
+	        <groupId>com.fasterxml.jackson.core</groupId>
+	        <artifactId>jackson-databind</artifactId>
+	    </dependency>
+    		
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>
@@ -90,6 +108,11 @@
 	  <dependency>
 	    <groupId>org.springframework.boot</groupId>
 	    <artifactId>spring-boot-starter-data-jpa</artifactId>
+	  </dependency>
+	  <dependency>
+	  	<groupId>com.example.community.rest</groupId>
+	  	<artifactId>community-rest</artifactId>
+	  	<version>0.0.1-SNAPSHOT</version>
 	  </dependency>
 	</dependencies>
 
