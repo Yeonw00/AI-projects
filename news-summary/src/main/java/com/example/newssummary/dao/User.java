@@ -41,6 +41,25 @@ public class User {
 	@OneToMany(mappedBy = "user")
 	private List<SavedSummary> savedSummaries;
 	
+	public User() {
+		
+	}
+	
+	public User(Long id, String username, String email, String passwordHash, LocalDateTime createdAt,
+			LocalDateTime lastLoginAt, List<SummaryRequest> summaryRequests, List<ErrorLog> errorLogs,
+			List<SavedSummary> savedSummaries) {
+		super();
+		this.id = id;
+		this.username = username;
+		this.email = email;
+		this.passwordHash = passwordHash;
+		this.createdAt = createdAt;
+		this.lastLoginAt = lastLoginAt;
+		this.summaryRequests = summaryRequests;
+		this.errorLogs = errorLogs;
+		this.savedSummaries = savedSummaries;
+	}
+
 	public Long getId() {
 		return id;
 	}
