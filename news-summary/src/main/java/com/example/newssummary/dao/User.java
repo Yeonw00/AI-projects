@@ -3,8 +3,7 @@ package com.example.newssummary.dao;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.example.newssummary.dto.SummaryRequest;
-
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -32,7 +31,7 @@ public class User {
 	
 	private LocalDateTime lastLoginAt;
 	
-	@OneToMany(mappedBy = "user")
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<SummaryRequest> summaryRequests;
 	
 	@OneToMany(mappedBy = "user")
