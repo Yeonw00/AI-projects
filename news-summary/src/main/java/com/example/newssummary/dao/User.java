@@ -10,6 +10,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
 @Entity
@@ -27,8 +28,15 @@ public class User {
 	@Column(name = "password_hash")
 	private String passwordHash;
 	
+	@Column(name = "created_at", updatable = false)
 	private LocalDateTime createdAt;
 	
+	@PrePersist
+    public void prePersist() {
+        this.createdAt = LocalDateTime.now();
+    }
+	
+	@Column(name = "last_login_at")
 	private LocalDateTime lastLoginAt;
 	
 	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)

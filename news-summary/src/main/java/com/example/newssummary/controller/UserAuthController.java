@@ -1,5 +1,7 @@
 package com.example.newssummary.controller;
 
+import java.time.LocalDateTime;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.newssummary.dao.User;
 import com.example.newssummary.dto.SignupRequest;
 import com.example.newssummary.dto.UserLoginRequest;
+import com.example.newssummary.repository.UserRepository;
 import com.example.newssummary.service.UserService;
 
 import jakarta.servlet.http.HttpSession;
@@ -19,6 +22,9 @@ import jakarta.servlet.http.HttpSession;
 public class UserAuthController {
 	@Autowired
 	private UserService userService;
+	
+	@Autowired
+	private UserRepository userRepository;
 	
 	@PostMapping("/signup")
 	public ResponseEntity<?> signup(@RequestBody SignupRequest request){
@@ -30,6 +36,9 @@ public class UserAuthController {
 	public ResponseEntity<?> login(@RequestBody UserLoginRequest request, HttpSession session) {
 		User user = userService.login(request);
 		session.setAttribute("user", user);
+		// 비밀번호 검증 등 처리 후 로그인 성공 시:
+	    user.setLastLoginAt(LocalDateTime.now());
+	    userRepository.save(user);
 		return ResponseEntity.ok("로그인 성공");
 	}
 	

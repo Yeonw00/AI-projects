@@ -15,16 +15,11 @@ public class SecurityConfig {
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		http
 			.csrf().disable()
+			.cors()
+			.and()
 			.authorizeHttpRequests()
-				.requestMatchers("/login", "/signup", "/css/**", "/js/**").permitAll()
-				.anyRequest().authenticated()
-			.and()
-			.formLogin()
-				.loginPage("/login")
-				.defaultSuccessUrl("/")
-			.and()
-			.logout()
-				.logoutSuccessUrl("/login?logout");
+				.requestMatchers("/**").permitAll()
+				.anyRequest().authenticated();
 		return http.build();
 	}
 	
