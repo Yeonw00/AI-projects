@@ -44,14 +44,13 @@ public class SummaryRequest {
 	public SummaryRequest() {}
 	
 	public SummaryRequest(Long id, User user, String originalUrl, String originalContent, String summaryResult,
-			String sourceSite, LocalDateTime createdAt, List<SavedSummary> savedSummaries) {
+			LocalDateTime createdAt, List<SavedSummary> savedSummaries) {
 		super();
 		this.id = id;
 		this.user = user;
 		this.originalUrl = originalUrl;
 		this.originalContent = originalContent;
 		this.summaryResult = summaryResult;
-		this.sourceSite = sourceSite;
 		this.createdAt = createdAt;
 		this.savedSummaries = savedSummaries;
 	}
@@ -96,14 +95,6 @@ public class SummaryRequest {
 		this.summaryResult = summaryResult;
 	}
 
-	public String getSourceSite() {
-		return sourceSite;
-	}
-
-	public void setSourceSite(String sourceSite) {
-		this.sourceSite = sourceSite;
-	}
-
 	public LocalDateTime getCreatedAt() {
 		return createdAt;
 	}
@@ -123,7 +114,7 @@ public class SummaryRequest {
 	@Override
 	public String toString() {
 		return "SummaryRequest [id=" + id + ", user=" + user + ", originalUrl=" + originalUrl + ", originalContent="
-				+ originalContent + ", summaryResult=" + summaryResult + ", sourceSite=" + sourceSite + ", createdAt="
+				+ originalContent + ", summaryResult=" + summaryResult + ", createdAt="
 				+ createdAt + ", savedSummaries=" + savedSummaries + "]";
 	}
 }
