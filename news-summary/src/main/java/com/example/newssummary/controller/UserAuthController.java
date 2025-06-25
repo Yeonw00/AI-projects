@@ -41,21 +41,12 @@ public class UserAuthController {
 		// 비밀번호 검증 등 처리 후 로그인 성공 시:
 	    user.setLastLoginAt(LocalDateTime.now());
 	    userRepository.save(user);
-		return ResponseEntity.ok("로그인 성공");
+		return ResponseEntity.ok(user);
 	}
 	
 	@PostMapping("/logout")
 	public ResponseEntity<?> logout(HttpSession session) {
 		session.invalidate();
 		return ResponseEntity.ok("로그아웃 성공");
-	}
-	
-	@GetMapping("/me")
-	public ResponseEntity<?> getCurrentUser(HttpSession session) {
-		User user = (User)session.getAttribute("user");
-		if(user == null) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
-		}
-		return ResponseEntity.ok(user.getUsername() + "님이 로그인 중입니다.");
 	}
 }
