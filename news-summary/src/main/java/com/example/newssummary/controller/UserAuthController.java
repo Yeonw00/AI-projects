@@ -1,9 +1,9 @@
 package com.example.newssummary.controller;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -48,5 +48,11 @@ public class UserAuthController {
 	public ResponseEntity<?> logout(HttpSession session) {
 		session.invalidate();
 		return ResponseEntity.ok("로그아웃 성공");
+	}
+	
+	@GetMapping("/api/auth/check")
+	public Map<String, Boolean> checkLogin(HttpSession session) {
+	    Boolean loggedIn = session.getAttribute("user") != null;
+	    return Map.of("loggedIn", loggedIn);
 	}
 }

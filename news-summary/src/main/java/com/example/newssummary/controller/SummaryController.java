@@ -1,10 +1,13 @@
 package com.example.newssummary.controller;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.newssummary.dao.SavedSummary;
 import com.example.newssummary.dao.SummaryRequest;
 import com.example.newssummary.dao.User;
+import com.example.newssummary.dto.SummaryPreviewDTO;
 import com.example.newssummary.dto.SummaryRequestDTO;
 import com.example.newssummary.repository.SavedSummaryRepository;
 import com.example.newssummary.repository.SummaryRequestRepository;
@@ -83,6 +87,7 @@ public class SummaryController {
 			summaryRequest.setCreatedAt(LocalDateTime.now());
 			
 			summaryRequestRepository.save(summaryRequest);
+			summaryService.toPreviewDto(summaryRequest);
 			
 			// 2. SavedSummary 자동 저장
 			SavedSummary saved = new SavedSummary();
@@ -97,5 +102,17 @@ public class SummaryController {
 		    e.printStackTrace();  // 콘솔에 전체 에러 로그 출력
 		    return ResponseEntity.status(500).body("요약 실패: " + e.getMessage());
 		}
+	}
+	
+	@GetMapping("/list")
+	public ResponseEntity<List<SummaryPreviewDTO>> getSummaryList(HttpSession session) {
+		User user = (User) session.getAttribute("user");
+		if (user == null) {
+			return ResponseEntity.status(401).build();
+		}
+		List<SummaryRequest> requests = summaryRequestRepository.findByUserId(user.getId());
+		List<SummaryPreviewDTO> previewLists = summaryService.toPreviewDtoList(requests);
+		
+		return ResponseEntity.ok(previewLists);
 	}
 }

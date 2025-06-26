@@ -3,6 +3,7 @@ package com.example.newssummary.service;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -15,7 +16,9 @@ import org.springframework.web.client.RestTemplate;
 
 import com.example.newssummary.config.HuggingFaceConfig;
 import com.example.newssummary.config.OpenAiConfig;
+import com.example.newssummary.dao.SummaryRequest;
 import com.example.newssummary.dto.OpenAiResponse;
+import com.example.newssummary.dto.SummaryPreviewDTO;
 
 
 @Service
@@ -81,4 +84,19 @@ public class SummaryService {
                        .getContent()
                        .trim();
     }
+	public static SummaryPreviewDTO toPreviewDto(SummaryRequest request) {
+		String title = extractTitleFromContent(request.getOriginalContent());
+		return new SummaryPreviewDTO(request.getId(), title, request.getCreatedAt());
+	}
+	
+	public static List<SummaryPreviewDTO> toPreviewDtoList(List<SummaryRequest> requests) {
+		return requests.stream().map(SummaryService::toPreviewDto).collect(Collectors.toList());
+	}
+	
+	private static String extractTitleFromContent(String content) {
+		if(content == null || content.isBlank()) return "(제목 없음)";
+		String[] parts = content.split("\\. ");
+		String firstSentence = parts.length > 0 ? parts[0] : content;
+		return firstSentence.length() > 10 ? firstSentence.substring(0, 20) + "..." : firstSentence + "...";
+	}
 }
