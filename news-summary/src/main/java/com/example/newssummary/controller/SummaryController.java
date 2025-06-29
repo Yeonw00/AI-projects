@@ -2,21 +2,23 @@ package com.example.newssummary.controller;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.example.newssummary.dao.SavedSummary;
 import com.example.newssummary.dao.SummaryRequest;
 import com.example.newssummary.dao.User;
-import com.example.newssummary.dto.SummaryPreviewDTO;
+import com.example.newssummary.dto.SavedSummaryDTO;
 import com.example.newssummary.dto.SummaryRequestDTO;
 import com.example.newssummary.repository.SavedSummaryRepository;
 import com.example.newssummary.repository.SummaryRequestRepository;
@@ -87,7 +89,6 @@ public class SummaryController {
 			summaryRequest.setCreatedAt(LocalDateTime.now());
 			
 			summaryRequestRepository.save(summaryRequest);
-			summaryService.toPreviewDto(summaryRequest);
 			
 			// 2. SavedSummary 자동 저장
 			SavedSummary saved = new SavedSummary();
@@ -105,14 +106,24 @@ public class SummaryController {
 	}
 	
 	@GetMapping("/list")
-	public ResponseEntity<List<SummaryPreviewDTO>> getSummaryList(HttpSession session) {
+	public ResponseEntity<List<SavedSummaryDTO>> getSummaryList(HttpSession session) {
 		User user = (User) session.getAttribute("user");
 		if (user == null) {
 			return ResponseEntity.status(401).build();
 		}
-		List<SummaryRequest> requests = summaryRequestRepository.findByUserId(user.getId());
-		List<SummaryPreviewDTO> previewLists = summaryService.toPreviewDtoList(requests);
+		List<SavedSummary> savedSummaries = savedSummaryRepository.findByUserId(user.getId());
+		List<SavedSummaryDTO> dtoList = savedSummaries.stream()
+				.map(SavedSummaryDTO::new)
+				.toList();
 		
-		return ResponseEntity.ok(previewLists);
+		return ResponseEntity.ok(dtoList);
+	}
+	
+	@GetMapping("/detail/{requestId}")
+	public ResponseEntity<SavedSummaryDTO> getSavedSummary(@PathVariable Long requestId) {
+		SavedSummary savedSummary = savedSummaryRepository.findById(requestId)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+		
+		return ResponseEntity.ok(new SavedSummaryDTO(savedSummary));
 	}
 }

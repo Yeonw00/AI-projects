@@ -1,0 +1,83 @@
+package com.example.newssummary.dto;
+
+import java.time.LocalDateTime;
+
+import com.example.newssummary.dao.SavedSummary;
+
+public class SavedSummaryDTO {
+	private Long id;
+	private String url;
+	private String origianlContent;
+	private String summary;
+	private LocalDateTime createdAt;
+	private LocalDateTime savedAt;
+	private String username;
+	
+	public SavedSummaryDTO() {}
+	
+	public SavedSummaryDTO(SavedSummary savedSummary) {
+		this.id = savedSummary.getId();
+		this.url = savedSummary.getSummaryRequest().getOriginalUrl();
+		this.origianlContent = savedSummary.getSummaryRequest().getOriginalContent();
+		this.summary = savedSummary.getSummaryRequest().getSummaryResult();
+		this.createdAt = savedSummary.getSummaryRequest().getCreatedAt();
+		this.savedAt = savedSummary.getSavedAt();
+		this.username = savedSummary.getUser().getUsername();
+	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
+	}
+
+	public String getOrigianlContent() {
+		return origianlContent;
+	}
+
+	public void setOrigianlContent(String origianlContent) {
+		this.origianlContent = origianlContent;
+	}
+
+	public String getSummary() {
+		return summary;
+	}
+
+	public void setSummary(String summary) {
+		this.summary = summary;
+	}
+
+	public LocalDateTime getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(LocalDateTime createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public LocalDateTime getSavedAt() {
+		return savedAt;
+	}
+
+	public void setSavedAt(LocalDateTime savedAt) {
+		this.savedAt = savedAt;
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+}
