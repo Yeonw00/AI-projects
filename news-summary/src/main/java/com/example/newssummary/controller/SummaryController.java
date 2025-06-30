@@ -2,12 +2,14 @@ package com.example.newssummary.controller;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -125,5 +127,20 @@ public class SummaryController {
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 		
 		return ResponseEntity.ok(new SavedSummaryDTO(savedSummary));
+	}
+	
+	@PatchMapping("/{id}/title")
+	public ResponseEntity<Void> updateTitle(@PathVariable Long id, @RequestBody Map<String, String> body, HttpSession session) {
+		User user = (User) session.getAttribute("user");
+		if (user == null) return ResponseEntity.status(401).build();
+		
+		SavedSummary summary = savedSummaryRepository.findById(id).orElse(null);
+		if(summary == null || !summary.getUser().getId().equals(user.getId())) {
+			return ResponseEntity.status(403).build();
+		}
+		
+		summary.setTitle(body.get("title"));
+		savedSummaryRepository.save(summary);
+		return ResponseEntity.ok().build();
 	}
 }

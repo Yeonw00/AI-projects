@@ -7,22 +7,24 @@ import com.example.newssummary.dao.SavedSummary;
 public class SavedSummaryDTO {
 	private Long id;
 	private String url;
-	private String origianlContent;
+	private String originalContent;
 	private String summary;
 	private LocalDateTime createdAt;
 	private LocalDateTime savedAt;
 	private String username;
+	private String title;
 	
 	public SavedSummaryDTO() {}
 	
 	public SavedSummaryDTO(SavedSummary savedSummary) {
 		this.id = savedSummary.getId();
 		this.url = savedSummary.getSummaryRequest().getOriginalUrl();
-		this.origianlContent = savedSummary.getSummaryRequest().getOriginalContent();
+		this.originalContent = savedSummary.getSummaryRequest().getOriginalContent();
 		this.summary = savedSummary.getSummaryRequest().getSummaryResult();
 		this.createdAt = savedSummary.getSummaryRequest().getCreatedAt();
 		this.savedAt = savedSummary.getSavedAt();
 		this.username = savedSummary.getUser().getUsername();
+		this.title = savedSummary.getTitle();
 	}
 
 	public Long getId() {
@@ -41,12 +43,12 @@ public class SavedSummaryDTO {
 		this.url = url;
 	}
 
-	public String getOrigianlContent() {
-		return origianlContent;
+	public String getOriginalContent() {
+		return originalContent;
 	}
 
-	public void setOrigianlContent(String origianlContent) {
-		this.origianlContent = origianlContent;
+	public void setOriginalContent(String originalContent) {
+		this.originalContent = originalContent;
 	}
 
 	public String getSummary() {
@@ -80,4 +82,13 @@ public class SavedSummaryDTO {
 	public void setUsername(String username) {
 		this.username = username;
 	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
+	}
+	
 }

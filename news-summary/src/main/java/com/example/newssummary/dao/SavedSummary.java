@@ -27,6 +27,8 @@ public class SavedSummary {
 	private SummaryRequest summaryRequest;
 	
 	private LocalDateTime savedAt;
+	
+	private String title;
 
 	public Long getId() {
 		return id;
@@ -59,10 +61,18 @@ public class SavedSummary {
 	public void setSavedAt(LocalDateTime savedAt) {
 		this.savedAt = savedAt;
 	}
+	
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
+	}
 
 	@Override
 	public String toString() {
 		return "SavedSummary [id=" + id + ", user=" + user + ", summaryRequest=" + summaryRequest + ", savedAt="
-				+ savedAt + "]";
+				+ savedAt + ", title=" + title + "]";
 	}
 }
