@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -141,6 +142,20 @@ public class SummaryController {
 		
 		summary.setTitle(body.get("title"));
 		savedSummaryRepository.save(summary);
+		return ResponseEntity.ok().build();
+	}
+	
+	@DeleteMapping("/delete/{id}")
+	public ResponseEntity<Void> deleteSummary(@PathVariable Long id, HttpSession session) {
+		User user = (User) session.getAttribute("user");
+		if (user == null) return ResponseEntity.status(401).build();
+		
+		SavedSummary summary = savedSummaryRepository.findById(id).orElse(null);
+		if(summary == null || !summary.getUser().getId().equals(user.getId())) {
+			return ResponseEntity.status(403).build();
+		}
+		
+		savedSummaryRepository.deleteById(id);
 		return ResponseEntity.ok().build();
 	}
 }
