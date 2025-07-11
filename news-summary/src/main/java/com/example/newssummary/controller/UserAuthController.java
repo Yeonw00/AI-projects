@@ -1,11 +1,15 @@
 package com.example.newssummary.controller;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,6 +31,9 @@ public class UserAuthController {
 	
 	@Autowired
 	private UserRepository userRepository;
+	
+	@Autowired
+	private PasswordEncoder passwordEncoder;
 	
 	@PostMapping("/signup")
 	public ResponseEntity<?> signup(@RequestBody SignupRequest request){
@@ -50,9 +57,38 @@ public class UserAuthController {
 		return ResponseEntity.ok("로그아웃 성공");
 	}
 	
-	@GetMapping("/api/auth/check")
-	public Map<String, Boolean> checkLogin(HttpSession session) {
-	    Boolean loggedIn = session.getAttribute("user") != null;
-	    return Map.of("loggedIn", loggedIn);
+	@GetMapping("/check")
+	public ResponseEntity<Map<String, Object>> checkLogin(HttpSession session) {
+	    Object user = session.getAttribute("user");
+	    Map<String, Object> result = new HashMap<>();
+	    result.put("loggedIn", user != null);
+	    return ResponseEntity.ok(result);
+	}
+	
+	@PatchMapping("/update")
+	public ResponseEntity<?> updateUser(@RequestBody Map<String, String> request, HttpSession session) {
+		String email = request.get("email");
+		String newPassword = request.get("newPassword");
+		String currentPassword = request.get("currentPassword");
+		
+		User user = (User) session.getAttribute("user");
+		if(user == null) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
+		
+		if(!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).body("현재 비밀번호가 올바르지 않습니다.");
+		}
+		
+		if(email !=null && !email.isBlank()) {
+			user.setEmail(email);
+		}
+		
+		if(newPassword != null && !newPassword.isBlank()) {
+			user.setPasswordHash(passwordEncoder.encode(newPassword));
+		}
+		
+		userRepository.save(user);
+		return ResponseEntity.ok().build();
 	}
 }
