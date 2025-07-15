@@ -19,6 +19,7 @@ import com.example.newssummary.dao.User;
 import com.example.newssummary.dto.SignupRequest;
 import com.example.newssummary.dto.UserLoginRequest;
 import com.example.newssummary.repository.UserRepository;
+import com.example.newssummary.security.JwtTokenProvider;
 import com.example.newssummary.service.UserService;
 
 import jakarta.servlet.http.HttpSession;
@@ -35,20 +36,45 @@ public class UserAuthController {
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 	
+	@Autowired
+	private JwtTokenProvider jwtTokenProvider;
+	
 	@PostMapping("/signup")
 	public ResponseEntity<?> signup(@RequestBody SignupRequest request){
 		userService.singup(request);
 		return ResponseEntity.ok("회원가입 성공");
 	}
 	
+	// 세션 사용 시 login로직
+//	@PostMapping("/login")
+//	public ResponseEntity<?> login(@RequestBody UserLoginRequest request, HttpSession session) {
+//		User user = userService.login(request);
+//		session.setAttribute("user", user);
+//		// 비밀번호 검증 등 처리 후 로그인 성공 시:
+//	    user.setLastLoginAt(LocalDateTime.now());
+//	    userRepository.save(user);
+//		return ResponseEntity.ok(user);
+//	}
+	
 	@PostMapping("/login")
-	public ResponseEntity<?> login(@RequestBody UserLoginRequest request, HttpSession session) {
+	public ResponseEntity<?> login(@RequestBody UserLoginRequest request) {
 		User user = userService.login(request);
-		session.setAttribute("user", user);
-		// 비밀번호 검증 등 처리 후 로그인 성공 시:
-	    user.setLastLoginAt(LocalDateTime.now());
-	    userRepository.save(user);
-		return ResponseEntity.ok(user);
+		
+		if(user == null) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인 실패");
+		}
+		
+		String token = jwtTokenProvider.generateToken(user.getUsername());
+		
+		user.setLastLoginAt(LocalDateTime.now());
+		userRepository.save(user);
+		
+		Map<String, Object> response = new HashMap<>();
+		response.put("token", token);
+		response.put("username", user.getUsername());
+		response.put("email", user.getEmail());
+		
+		return ResponseEntity.ok(response);
 	}
 	
 	@PostMapping("/logout")
