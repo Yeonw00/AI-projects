@@ -7,6 +7,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,6 +26,7 @@ import com.example.newssummary.dto.SavedSummaryDTO;
 import com.example.newssummary.dto.SummaryRequestDTO;
 import com.example.newssummary.repository.SavedSummaryRepository;
 import com.example.newssummary.repository.SummaryRequestRepository;
+import com.example.newssummary.security.CustomUserDetails;
 import com.example.newssummary.service.SummaryService;
 import com.example.newssummary.util.HtmlParser;
 
@@ -65,9 +67,10 @@ public class SummaryController {
 	}
 	
 	@PostMapping("/openai")
-	public ResponseEntity<String> summarizeOpenAi(@RequestBody SummaryRequestDTO requestDto, HttpSession session) {
+	public ResponseEntity<String> summarizeOpenAi(@RequestBody SummaryRequestDTO requestDto, 
+			@AuthenticationPrincipal CustomUserDetails userDetails) {
 		try {
-			User user = (User)session.getAttribute("user");
+			User user = userDetails.getUser();
 			if(user == null) {
 				return ResponseEntity.status(401).body("로그인이 필요합니다.");
 			}
@@ -109,8 +112,9 @@ public class SummaryController {
 	}
 	
 	@GetMapping("/list")
-	public ResponseEntity<List<SavedSummaryDTO>> getSummaryList(HttpSession session) {
-		User user = (User) session.getAttribute("user");
+	public ResponseEntity<List<SavedSummaryDTO>> getSummaryList(
+			@AuthenticationPrincipal CustomUserDetails userDetails) {
+		User user = userDetails.getUser();
 		if (user == null) {
 			return ResponseEntity.status(401).build();
 		}
@@ -131,8 +135,9 @@ public class SummaryController {
 	}
 	
 	@PatchMapping("/{id}/title")
-	public ResponseEntity<Void> updateTitle(@PathVariable Long id, @RequestBody Map<String, String> body, HttpSession session) {
-		User user = (User) session.getAttribute("user");
+	public ResponseEntity<Void> updateTitle(@PathVariable Long id, @RequestBody Map<String, String> body, 
+			@AuthenticationPrincipal CustomUserDetails userDetails) {
+		User user = userDetails.getUser();
 		if (user == null) return ResponseEntity.status(401).build();
 		
 		SavedSummary summary = savedSummaryRepository.findById(id).orElse(null);
@@ -146,8 +151,9 @@ public class SummaryController {
 	}
 	
 	@DeleteMapping("/delete/{id}")
-	public ResponseEntity<Void> deleteSummary(@PathVariable Long id, HttpSession session) {
-		User user = (User) session.getAttribute("user");
+	public ResponseEntity<Void> deleteSummary(@PathVariable Long id, 
+			@AuthenticationPrincipal CustomUserDetails userDetails) {
+		User user = userDetails.getUser();
 		if (user == null) return ResponseEntity.status(401).build();
 		
 		SavedSummary summary = savedSummaryRepository.findById(id).orElse(null);

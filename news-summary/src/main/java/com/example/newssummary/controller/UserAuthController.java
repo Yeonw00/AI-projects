@@ -7,6 +7,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -19,6 +20,7 @@ import com.example.newssummary.dao.User;
 import com.example.newssummary.dto.SignupRequest;
 import com.example.newssummary.dto.UserLoginRequest;
 import com.example.newssummary.repository.UserRepository;
+import com.example.newssummary.security.CustomUserDetails;
 import com.example.newssummary.security.JwtTokenProvider;
 import com.example.newssummary.service.UserService;
 
@@ -61,7 +63,10 @@ public class UserAuthController {
 		User user = userService.login(request);
 		
 		if(user == null) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인 실패");
+			Map<String, String> error = new HashMap<>();
+			error.put("message", "아이디 또는 비밀번호가 잘못되었습니다.");
+			
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
 		}
 		
 		String token = jwtTokenProvider.generateToken(user.getUsername());
@@ -78,26 +83,27 @@ public class UserAuthController {
 	}
 	
 	@PostMapping("/logout")
-	public ResponseEntity<?> logout(HttpSession session) {
-		session.invalidate();
+	public ResponseEntity<?> logout() {
 		return ResponseEntity.ok("로그아웃 성공");
 	}
 	
 	@GetMapping("/check")
-	public ResponseEntity<Map<String, Object>> checkLogin(HttpSession session) {
-	    Object user = session.getAttribute("user");
+	public ResponseEntity<Map<String, Object>> checkLogin(
+			@AuthenticationPrincipal CustomUserDetails userDetails) {
+	    Object user = userDetails.getUser();
 	    Map<String, Object> result = new HashMap<>();
 	    result.put("loggedIn", user != null);
 	    return ResponseEntity.ok(result);
 	}
 	
 	@PatchMapping("/update")
-	public ResponseEntity<?> updateUser(@RequestBody Map<String, String> request, HttpSession session) {
+	public ResponseEntity<?> updateUser(@RequestBody Map<String, String> request, 
+			@AuthenticationPrincipal CustomUserDetails userDetails) {
 		String email = request.get("email");
 		String newPassword = request.get("newPassword");
 		String currentPassword = request.get("currentPassword");
 		
-		User user = (User) session.getAttribute("user");
+		User user = userDetails.getUser();
 		if(user == null) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 		}
