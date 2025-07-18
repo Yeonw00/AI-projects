@@ -96,7 +96,7 @@ public class UserAuthController {
 	    return ResponseEntity.ok(result);
 	}
 	
-	@PatchMapping("/update")
+	@PatchMapping("/me")
 	public ResponseEntity<?> updateUser(@RequestBody Map<String, String> request, 
 			@AuthenticationPrincipal CustomUserDetails userDetails) {
 		String email = request.get("email");
@@ -108,19 +108,19 @@ public class UserAuthController {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 		}
 		
-		if(!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
-			return ResponseEntity.status(HttpStatus.FORBIDDEN).body("현재 비밀번호가 올바르지 않습니다.");
-		}
 		
-		if(email !=null && !email.isBlank()) {
+		if(email !=null && !email.isBlank() && !email.matches("^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$")) {
 			user.setEmail(email);
 		}
 		
 		if(newPassword != null && !newPassword.isBlank()) {
+			if(!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
+				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("현재 비밀번호가 올바르지 않습니다.");
+			}
 			user.setPasswordHash(passwordEncoder.encode(newPassword));
 		}
 		
 		userRepository.save(user);
-		return ResponseEntity.ok().build();
+		return ResponseEntity.ok("회원 정보가 성공적으로 수정되었습니다.");
 	}
 }
