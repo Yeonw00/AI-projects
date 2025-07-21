@@ -90,5 +90,11 @@ public class SavedSummaryDTO {
 	public void setTitle(String title) {
 		this.title = title;
 	}
-	
+
+	@Override
+	public String toString() {
+		return "SavedSummaryDTO [id=" + id + ", url=" + url + ", originalContent=" + originalContent + ", summary="
+				+ summary + ", createdAt=" + createdAt + ", savedAt=" + savedAt + ", username=" + username + ", title="
+				+ title + "]";
+	}
 }

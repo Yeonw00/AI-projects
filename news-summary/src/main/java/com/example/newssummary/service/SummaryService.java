@@ -3,7 +3,6 @@ package com.example.newssummary.service;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -16,9 +15,9 @@ import org.springframework.web.client.RestTemplate;
 
 import com.example.newssummary.config.HuggingFaceConfig;
 import com.example.newssummary.config.OpenAiConfig;
-import com.example.newssummary.dao.SummaryRequest;
+import com.example.newssummary.dao.SavedSummary;
 import com.example.newssummary.dto.OpenAiResponse;
-import com.example.newssummary.dto.SavedSummaryDTO;
+import com.example.newssummary.repository.SavedSummaryRepository;
 
 
 @Service
@@ -29,13 +28,17 @@ public class SummaryService {
 	private RestTemplate restTemplate = new RestTemplate();
 	
 	@Autowired
-	public SummaryService(HuggingFaceConfig huggingFaceConfig, RestTemplateBuilder builder, OpenAiConfig openAiConfig) {
+	private SavedSummaryRepository savedSummaryRepository;
+	
+	@Autowired
+	public SummaryService(HuggingFaceConfig huggingFaceConfig, RestTemplateBuilder builder, OpenAiConfig openAiConfig, SavedSummaryRepository savedSummaryRepository) {
 		this.huggingFaceConfig = huggingFaceConfig;
 		this.restTemplate = builder
 		        .setConnectTimeout(Duration.ofSeconds(10))
 		        .setReadTimeout(Duration.ofSeconds(120))
 		        .build();
 		this.openAiConfig = openAiConfig;
+		this.savedSummaryRepository = savedSummaryRepository;
 	}
 	
 	public String summarizeHuggingFace(String content) {
@@ -84,5 +87,9 @@ public class SummaryService {
                        .getContent()
                        .trim();
     }
+	
+	public List<SavedSummary> searchByKeyword(Long userId, String keyword) {
+		return savedSummaryRepository.searchByKeyword(userId, keyword);
+	}
 	
 }

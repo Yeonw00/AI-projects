@@ -3,6 +3,7 @@ package com.example.newssummary.controller;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -29,8 +31,6 @@ import com.example.newssummary.repository.SummaryRequestRepository;
 import com.example.newssummary.security.CustomUserDetails;
 import com.example.newssummary.service.SummaryService;
 import com.example.newssummary.util.HtmlParser;
-
-import jakarta.servlet.http.HttpSession;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
@@ -163,5 +163,21 @@ public class SummaryController {
 		
 		savedSummaryRepository.deleteById(id);
 		return ResponseEntity.ok().build();
+	}
+	
+	@GetMapping("/search")
+	public ResponseEntity<?> searchSummary(@RequestParam String keyword, 
+			@AuthenticationPrincipal CustomUserDetails userDetails) {
+		User user = userDetails.getUser();
+		if (user == null) return ResponseEntity.status(401).build();
+		
+		Long userId = user.getId();
+		
+		List<SavedSummary> summaries = summaryService.searchByKeyword(userId, keyword);
+		List<SavedSummaryDTO> dtoList = summaries.stream()
+			    .map(SavedSummaryDTO::new)
+			    .collect(Collectors.toList());
+
+		return ResponseEntity.ok(dtoList);
 	}
 }
