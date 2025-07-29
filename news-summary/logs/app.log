@@ -1187,3 +1187,13 @@ java.lang.StackOverflowError: null
 2025-07-29T23:44:34.285+09:00  INFO 12652 --- [news-summary] [restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
 2025-07-29T23:44:34.353+09:00  INFO 12652 --- [news-summary] [restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
 2025-07-29T23:44:34.400+09:00 DEBUG 12652 --- [news-summary] [restartedMain] c.e.n.security.JwtAuthenticationFilter   : Filter 'jwtAuthenticationFilter' configured for use
+2025-07-29T23:44:35.211+09:00  WARN 12652 --- [news-summary] [restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-07-29T23:44:35.236+09:00  INFO 12652 --- [news-summary] [restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name customUserDetailsService
+2025-07-29T23:44:35.296+09:00  WARN 12652 --- [news-summary] [restartedMain] ion$DefaultTemplateResolverConfiguration : Cannot find template location: classpath:/templates/ (please add some templates, check your Thymeleaf configuration, or set spring.thymeleaf.check-template-location=false)
+2025-07-29T23:44:35.329+09:00  INFO 12652 --- [news-summary] [restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
+2025-07-29T23:44:35.338+09:00  INFO 12652 --- [news-summary] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2025-07-29T23:44:35.342+09:00  INFO 12652 --- [news-summary] [restartedMain] c.e.newssummary.NewsSummaryApplication   : Started NewsSummaryApplication in 1.67 seconds (process running for 3816.745)
+2025-07-29T23:44:35.344+09:00  INFO 12652 --- [news-summary] [restartedMain] .ConditionEvaluationDeltaLoggingListener : Condition evaluation unchanged
+2025-07-29T23:44:44.472+09:00  INFO 12652 --- [news-summary] [http-nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-07-29T23:44:44.473+09:00  INFO 12652 --- [news-summary] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2025-07-29T23:44:44.474+09:00  INFO 12652 --- [news-summary] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
