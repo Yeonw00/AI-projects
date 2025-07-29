@@ -174,6 +174,7 @@ public class SummaryController {
 		Long userId = user.getId();
 		
 		List<SavedSummary> summaries = summaryService.searchByKeyword(userId, keyword);
+		System.out.println("summaries : " + summaries);
 		List<SavedSummaryDTO> dtoList = summaries.stream()
 			    .map(SavedSummaryDTO::new)
 			    .collect(Collectors.toList());

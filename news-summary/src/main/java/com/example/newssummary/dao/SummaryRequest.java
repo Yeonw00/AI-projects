@@ -113,8 +113,7 @@ public class SummaryRequest {
 
 	@Override
 	public String toString() {
-		return "SummaryRequest [id=" + id + ", user=" + user + ", originalUrl=" + originalUrl + ", originalContent="
-				+ originalContent + ", summaryResult=" + summaryResult + ", createdAt="
-				+ createdAt + ", savedSummaries=" + savedSummaries + "]";
+		return "SummaryRequest [id=" + id + ", userId=" + (user != null ? user.getId() : null) + ", originalUrl=" + originalUrl + ", sourceSite="
+				+ sourceSite + ", createdAt=" + createdAt + "]";
 	}
 }

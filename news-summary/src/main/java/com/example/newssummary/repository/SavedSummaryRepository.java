@@ -12,7 +12,9 @@ public interface SavedSummaryRepository extends JpaRepository<SavedSummary, Long
 
 	List<SavedSummary> findByUserId(Long id);
 
-	@Query("SELECT s FROM SavedSummary s WHERE s.user.id = :userId AND s.title LIKE %:keyword%")
+	@Query("SELECT s FROM SavedSummary s JOIN FETCH s.summaryRequest sr " +
+		       "WHERE s.user.id = :userId AND " +
+		       "(s.title LIKE CONCAT('%', :keyword, '%') OR sr.summaryResult LIKE CONCAT('%', :keyword, '%'))")
 	List<SavedSummary> searchByKeyword(@Param("userId") Long userId, @Param("keyword") String keyword);
 
 }

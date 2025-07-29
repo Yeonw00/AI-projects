@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -26,7 +27,8 @@ public class SecurityConfig {
 			.cors()
 			.and()
 			.authorizeHttpRequests()
-				.requestMatchers("/api/**").permitAll()
+				.requestMatchers("/api/auth/**").permitAll()
+				.requestMatchers("/api/summary/search").permitAll() // ✅ 검색 API는 임시로 열기
 				.anyRequest().authenticated()
 			.and()
 			.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
@@ -48,7 +50,7 @@ public class SecurityConfig {
 	    CorsConfiguration configuration = new CorsConfiguration();
 	    configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
 	    configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-	    configuration.setAllowedHeaders(Arrays.asList("*"));
+	    configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
 	    configuration.setAllowCredentials(true);
 
 	    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
