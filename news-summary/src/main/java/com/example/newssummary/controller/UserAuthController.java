@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -14,7 +15,9 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import com.example.newssummary.dao.User;
 import com.example.newssummary.dto.SignupRequest;
@@ -23,8 +26,6 @@ import com.example.newssummary.repository.UserRepository;
 import com.example.newssummary.security.CustomUserDetails;
 import com.example.newssummary.security.JwtTokenProvider;
 import com.example.newssummary.service.UserService;
-
-import jakarta.servlet.http.HttpSession;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -40,6 +41,18 @@ public class UserAuthController {
 	
 	@Autowired
 	private JwtTokenProvider jwtTokenProvider;
+	
+	@Value("${spring.security.oauth2.client.registration.google.client-id}")
+	private String clientId;
+	
+	@Value("${spring.security.oauth2.client.registration.google.client-secret}")
+	private String clientSecret;
+	
+	@Value("${spring.security.oauth2.client.registration.google.redirect-uri}")
+	private String redirectUri;
+	
+	private final String TOKEN_URL = "https://oauth2.googleapis.com/token";
+	private final String USER_INFO_URL = "https://www.googleapis.com/oauth2/v2/userinfo";
 	
 	@PostMapping("/signup")
 	public ResponseEntity<?> signup(@RequestBody SignupRequest request){
@@ -122,5 +135,45 @@ public class UserAuthController {
 		
 		userRepository.save(user);
 		return ResponseEntity.ok("회원 정보가 성공적으로 수정되었습니다.");
+	}
+	
+	@GetMapping("/google/login")
+	public String googleLoginUrl() {
+		return "https://accounts.google.com/o/oauth2/v2/auth"
+				+ "?client_id=" + clientId
+				+ "&redirect_uri=" + redirectUri
+				+ "&response_type=code"
+				+ "&scope=profile email";
+	}
+	
+//	google 로그인 callback (code -> Access Token -> User Info)
+	@GetMapping("/google/callback")
+	public ResponseEntity<?> googleCallback(@RequestParam("code") String code) {
+		RestTemplate restTemplate = new RestTemplate();
+		
+		// Access Token 요청
+		Map<String, String> tokenRequest = new HashMap<>();
+		tokenRequest.put("code", code);
+		tokenRequest.put("client_id", clientId);
+		tokenRequest.put("client_secret", clientSecret);
+		tokenRequest.put("redirect_uri", redirectUri);
+		tokenRequest.put("grant_type", "authorization_code");
+		
+		Map<String, Object> tokenResponse = restTemplate.postForObject(TOKEN_URL, tokenRequest, Map.class);
+		
+		String accessToken = (String) tokenResponse.get("access_token");
+		
+		// User Info 요청
+		String userInfoEndpoint = USER_INFO_URL + "?access_token=" + accessToken;
+		Map<String, Object> userInfo = restTemplate.getForObject(userInfoEndpoint, Map.class);
+		
+		// DB 사용자 조회/회원가입 & JWT 발급
+		String token = userService.processGoogleUser(userInfo);
+		
+		Map<String, Object> response = new HashMap<>();
+	    response.put("token", token);
+	    response.put("user", userInfo);
+	    
+	    return ResponseEntity.ok(response);
 	}
 }

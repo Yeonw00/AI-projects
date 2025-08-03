@@ -1,5 +1,9 @@
 package com.example.newssummary.service;
 
+import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -10,11 +14,15 @@ import com.example.newssummary.dao.User;
 import com.example.newssummary.dto.SignupRequest;
 import com.example.newssummary.dto.UserLoginRequest;
 import com.example.newssummary.repository.UserRepository;
+import com.example.newssummary.security.JwtTokenProvider;
 
 @Service
 public class UserService {
 	@Autowired
 	private UserRepository userRepository;
+	
+	@Autowired
+	private JwtTokenProvider jwtTokenProvider;
 	
 	@Autowired
 	private PasswordEncoder passwordEncoder;
@@ -38,5 +46,45 @@ public class UserService {
 			throw new BadCredentialsException("비밀번호가 일치하지 않습니다.");
 		}
 		return user;
+	}
+	
+	public String processGoogleUser(Map<String, Object> userInfo) {
+		// 1.Google에서 받은 정보 추출
+		String email = (String) userInfo.get("email");
+		String googleName = (String) userInfo.get("name");
+		String googleId = (String) userInfo.get("id");
+		String picture = (String) userInfo.get("picture");
+		
+		// 2.사용자 존재 여부 확인
+		Optional<User> optionalUser = userRepository.findByEmail(email);
+		User user;
+		
+		if(optionalUser.isPresent()) {
+			// 기존 사용자
+			user = optionalUser.get();
+			user.setLastLoginAt(LocalDateTime.now());
+			userRepository.save(user);
+		} else {
+			// 신규 가입 
+			String baseUsername = email.split("@")[0];
+			String username = generateUniqueUsername(baseUsername);
+			
+			user = new User(username, email);
+			userRepository.save(user);
+		}
+		
+		// 3.JWT 토큰 생성
+		return jwtTokenProvider.generateToken(user.getUsername());
+	}
+	
+	private String generateUniqueUsername(String baseUsername) {
+		String username = baseUsername;
+		int count = 1;
+		
+		while (userRepository.existsByUsername(username)) {
+			username = baseUsername + count;
+			count ++;
+		}
+		return username;
 	}
 }

@@ -1,6 +1,7 @@
 package com.example.newssummary.dao;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
@@ -65,6 +66,17 @@ public class User {
 		this.summaryRequests = summaryRequests;
 		this.errorLogs = errorLogs;
 		this.savedSummaries = savedSummaries;
+	}
+	
+	// Google Oauth로 가입을 위한 생성자
+	public User(String username, String email) {
+	    this.username = username;
+	    this.email = email;
+	    this.createdAt = LocalDateTime.now();
+	    this.lastLoginAt = LocalDateTime.now();
+	    this.summaryRequests = new ArrayList<>();
+	    this.errorLogs = new ArrayList<>();
+	    this.savedSummaries = new ArrayList<>();
 	}
 
 	public Long getId() {
