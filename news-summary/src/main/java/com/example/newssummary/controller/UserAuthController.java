@@ -1,5 +1,8 @@
 package com.example.newssummary.controller;
 
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,6 +29,8 @@ import com.example.newssummary.repository.UserRepository;
 import com.example.newssummary.security.CustomUserDetails;
 import com.example.newssummary.security.JwtTokenProvider;
 import com.example.newssummary.service.UserService;
+
+import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -148,7 +153,7 @@ public class UserAuthController {
 	
 //	google 로그인 callback (code -> Access Token -> User Info)
 	@GetMapping("/google/callback")
-	public ResponseEntity<?> googleCallback(@RequestParam("code") String code) {
+	public void googleCallback(@RequestParam("code") String code, HttpServletResponse response) throws IOException {
 		RestTemplate restTemplate = new RestTemplate();
 		
 		// Access Token 요청
@@ -168,12 +173,16 @@ public class UserAuthController {
 		Map<String, Object> userInfo = restTemplate.getForObject(userInfoEndpoint, Map.class);
 		
 		// DB 사용자 조회/회원가입 & JWT 발급
-		String token = userService.processGoogleUser(userInfo);
-		
-		Map<String, Object> response = new HashMap<>();
-	    response.put("token", token);
-	    response.put("user", userInfo);
+		User user = userService.processGoogleUser(userInfo);
+		String username = user.getUsername();
+		String token = jwtTokenProvider.generateToken(username);
 	    
-	    return ResponseEntity.ok(response);
+	    String redirectUrl = String.format(
+	    		"http://localhost:3000/google-success?token=%s&username=%s",
+	    		URLEncoder.encode(token, StandardCharsets.UTF_8),
+	    		URLEncoder.encode(username, StandardCharsets.UTF_8)
+	    );
+	    
+	    response.sendRedirect(redirectUrl);
 	}
 }

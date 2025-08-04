@@ -27,8 +27,7 @@ public class SecurityConfig {
 			.cors()
 			.and()
 			.authorizeHttpRequests()
-				.requestMatchers("/api/auth/**").permitAll()
-				.requestMatchers("/api/summary/search").permitAll() // ✅ 검색 API는 임시로 열기
+				.requestMatchers("/api/auth/**", "/oauth2/**").permitAll()
 				.anyRequest().authenticated()
 			.and()
 			.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);

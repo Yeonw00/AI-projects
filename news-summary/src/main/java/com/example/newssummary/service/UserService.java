@@ -48,7 +48,7 @@ public class UserService {
 		return user;
 	}
 	
-	public String processGoogleUser(Map<String, Object> userInfo) {
+	public User processGoogleUser(Map<String, Object> userInfo) {
 		// 1.Google에서 받은 정보 추출
 		String email = (String) userInfo.get("email");
 		String googleName = (String) userInfo.get("name");
@@ -74,7 +74,7 @@ public class UserService {
 		}
 		
 		// 3.JWT 토큰 생성
-		return jwtTokenProvider.generateToken(user.getUsername());
+		return user;
 	}
 	
 	private String generateUniqueUsername(String baseUsername) {
