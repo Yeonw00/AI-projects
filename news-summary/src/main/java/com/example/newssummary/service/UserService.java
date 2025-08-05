@@ -22,9 +22,6 @@ public class UserService {
 	private UserRepository userRepository;
 	
 	@Autowired
-	private JwtTokenProvider jwtTokenProvider;
-	
-	@Autowired
 	private PasswordEncoder passwordEncoder;
 	
 	public void singup(SignupRequest request) {
