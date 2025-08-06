@@ -48,9 +48,9 @@ public class UserService {
 	public User processGoogleUser(Map<String, Object> userInfo) {
 		// 1.Google에서 받은 정보 추출
 		String email = (String) userInfo.get("email");
-		String googleName = (String) userInfo.get("name");
-		String googleId = (String) userInfo.get("id");
-		String picture = (String) userInfo.get("picture");
+//		String googleName = (String) userInfo.get("name");
+//		String googleId = (String) userInfo.get("id");
+//		String picture = (String) userInfo.get("picture");
 		
 		// 2.사용자 존재 여부 확인
 		Optional<User> optionalUser = userRepository.findByEmail(email);
