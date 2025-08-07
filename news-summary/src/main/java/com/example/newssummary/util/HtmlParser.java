@@ -37,22 +37,8 @@ public class HtmlParser {
 //		}
 //	}
 	
-	public static String extractArticle(String url) throws IOException, TimeoutException {
-		WebDriver driver = null;
-		// chromedriver 경로 설정
-	    System.setProperty("webdriver.chrome.driver", "C:\\tools\\chromedriver.exe");
-
-	    // Headless 옵션 추가 (선택사항)
-	    ChromeOptions options = new ChromeOptions();
-	    options.addArguments("--headless=new"); // 최신 방식의 headless
-	    options.addArguments("--disable-gpu");
-	    options.addArguments("--no-sandbox");
-	    options.addArguments("--disable-dev-shm-usage");
-	    options.setPageLoadStrategy(PageLoadStrategy.NORMAL);
-
+	public static String extractArticle(WebDriver driver, String url) throws IOException, TimeoutException {
 	    try {
-	    	driver = new ChromeDriver(options);
-	    	driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(30));
 	    	driver.get(url);
 	    	
 	    	// JavaScript 렌더링 완료 후 페이지 소스를 가져옴
@@ -67,14 +53,8 @@ public class HtmlParser {
 	        } else {
 	            return "본문을 추출하지 못했습니다.";
 	        }
-	    } catch (NoSuchElementException e) {
-	        System.err.println("요소를 찾을 수 없습니다: " + e.getMessage());
 	    } catch (Exception e) {
 	        System.err.println("예외 발생: " + e.getMessage());
-	    } finally {
-	    	if(driver != null) {
-	    		driver.quit();
-	    	}
 	    }
 
 	    return "";

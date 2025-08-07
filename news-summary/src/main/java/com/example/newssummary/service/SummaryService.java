@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
+import org.openqa.selenium.WebDriver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
@@ -18,6 +19,8 @@ import com.example.newssummary.config.OpenAiConfig;
 import com.example.newssummary.dao.SavedSummary;
 import com.example.newssummary.dto.OpenAiResponse;
 import com.example.newssummary.repository.SavedSummaryRepository;
+import com.example.newssummary.util.HtmlParser;
+import com.example.newssummary.util.WebDriverFactory;
 
 
 @Service
@@ -25,20 +28,34 @@ public class SummaryService {
 	
 	private final HuggingFaceConfig huggingFaceConfig;
 	private final OpenAiConfig openAiConfig;
-	private RestTemplate restTemplate = new RestTemplate();
+	
+	@Autowired
+	private RestTemplate restTemplate;
 	
 	@Autowired
 	private SavedSummaryRepository savedSummaryRepository;
 	
 	@Autowired
-	public SummaryService(HuggingFaceConfig huggingFaceConfig, RestTemplateBuilder builder, OpenAiConfig openAiConfig, SavedSummaryRepository savedSummaryRepository) {
+	public SummaryService(HuggingFaceConfig huggingFaceConfig, RestTemplate restTemplate, OpenAiConfig openAiConfig, SavedSummaryRepository savedSummaryRepository) {
 		this.huggingFaceConfig = huggingFaceConfig;
-		this.restTemplate = builder
-		        .setConnectTimeout(Duration.ofSeconds(10))
-		        .setReadTimeout(Duration.ofSeconds(120))
-		        .build();
+		this.restTemplate = restTemplate;
 		this.openAiConfig = openAiConfig;
 		this.savedSummaryRepository = savedSummaryRepository;
+	}
+	
+	public String getArticleContent(String url) {
+		WebDriver driver = null;
+		try {
+			driver = WebDriverFactory.createDriver();
+			return HtmlParser.extractArticle(driver, url);
+		} catch (Exception e) {
+			System.err.println("SummaryService - 기사 추출 중 오류: "+ e.getMessage());
+			return "";
+		} finally {
+			if (driver != null) {
+				driver.quit();
+			}
+		}
 	}
 	
 	public String summarizeHuggingFace(String content) {
@@ -73,12 +90,16 @@ public class SummaryService {
         );
 
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+        System.out.println("request = " + request);
 
         ResponseEntity<OpenAiResponse> response = restTemplate.postForEntity(
             "https://api.openai.com/v1/chat/completions",
             request,
             OpenAiResponse.class
         );
+        
+        System.out.println("response code = " + response.getStatusCode());
+        System.out.println("response body = " + response.getBody());
 
         return response.getBody()
                        .getChoices()
@@ -91,5 +112,4 @@ public class SummaryService {
 	public List<SavedSummary> searchByKeyword(Long userId, String keyword) {
 		return savedSummaryRepository.searchByKeyword(userId, keyword);
 	}
-	
 }

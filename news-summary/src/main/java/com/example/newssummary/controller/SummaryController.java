@@ -49,7 +49,7 @@ public class SummaryController {
 	@PostMapping("/huggingFace")
 	public ResponseEntity<String> summarizeHuggingFace(@RequestBody SummaryRequestDTO request) {
 		try {
-			String content = HtmlParser.extractArticle(request.getOriginalUrl());
+			String content = summaryService.getArticleContent(request.getOriginalUrl());
 			
 			if (content.length() > 1000) {
 			    content = content.substring(0, 1000);
@@ -77,7 +77,7 @@ public class SummaryController {
 			
 			String content = null;
 			if(requestDto.getOriginalUrl() != null) {
-				content = HtmlParser.extractArticle(requestDto.getOriginalUrl());
+				content = summaryService.getArticleContent(requestDto.getOriginalUrl());
 			} else if(requestDto.getOriginalContent() != null) {
 				content = requestDto.getOriginalContent();
 			}
