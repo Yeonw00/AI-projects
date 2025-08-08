@@ -30,7 +30,8 @@ import com.example.newssummary.repository.SavedSummaryRepository;
 import com.example.newssummary.repository.SummaryRequestRepository;
 import com.example.newssummary.security.CustomUserDetails;
 import com.example.newssummary.service.SummaryService;
-import com.example.newssummary.util.HtmlParser;
+
+import jakarta.transaction.Transactional;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
@@ -66,6 +67,7 @@ public class SummaryController {
 		}
 	}
 	
+	@Transactional
 	@PostMapping("/openai")
 	public ResponseEntity<String> summarizeOpenAi(@RequestBody SummaryRequestDTO requestDto, 
 			@AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -97,12 +99,7 @@ public class SummaryController {
 			summaryRequestRepository.save(summaryRequest);
 			
 			// 2. SavedSummary 자동 저장
-			SavedSummary saved = new SavedSummary();
-			saved.setUser(user);
-			saved.setSummaryRequest(summaryRequest);
-			saved.setSavedAt(LocalDateTime.now());
-			
-			savedSummaryRepository.save(saved);
+			summaryService.createSavedSummary(user, summaryRequest);
 			
 			return ResponseEntity.ok(summary);
 		} catch (Exception e) {

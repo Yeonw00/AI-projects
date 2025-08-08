@@ -1,12 +1,11 @@
 package com.example.newssummary.service;
 
-import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
 import org.openqa.selenium.WebDriver;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -17,6 +16,8 @@ import org.springframework.web.client.RestTemplate;
 import com.example.newssummary.config.HuggingFaceConfig;
 import com.example.newssummary.config.OpenAiConfig;
 import com.example.newssummary.dao.SavedSummary;
+import com.example.newssummary.dao.SummaryRequest;
+import com.example.newssummary.dao.User;
 import com.example.newssummary.dto.OpenAiResponse;
 import com.example.newssummary.repository.SavedSummaryRepository;
 import com.example.newssummary.util.HtmlParser;
@@ -36,11 +37,15 @@ public class SummaryService {
 	private SavedSummaryRepository savedSummaryRepository;
 	
 	@Autowired
-	public SummaryService(HuggingFaceConfig huggingFaceConfig, RestTemplate restTemplate, OpenAiConfig openAiConfig, SavedSummaryRepository savedSummaryRepository) {
+	private TitleExtractor titleExtractor;
+	
+	@Autowired
+	public SummaryService(HuggingFaceConfig huggingFaceConfig, RestTemplate restTemplate, OpenAiConfig openAiConfig, SavedSummaryRepository savedSummaryRepository, TitleExtractor titleExtractor) {
 		this.huggingFaceConfig = huggingFaceConfig;
 		this.restTemplate = restTemplate;
 		this.openAiConfig = openAiConfig;
 		this.savedSummaryRepository = savedSummaryRepository;
+		this.titleExtractor = titleExtractor;
 	}
 	
 	public String getArticleContent(String url) {
@@ -90,7 +95,6 @@ public class SummaryService {
         );
 
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
-        System.out.println("request = " + request);
 
         ResponseEntity<OpenAiResponse> response = restTemplate.postForEntity(
             "https://api.openai.com/v1/chat/completions",
@@ -98,9 +102,6 @@ public class SummaryService {
             OpenAiResponse.class
         );
         
-        System.out.println("response code = " + response.getStatusCode());
-        System.out.println("response body = " + response.getBody());
-
         return response.getBody()
                        .getChoices()
                        .get(0)
@@ -111,5 +112,39 @@ public class SummaryService {
 	
 	public List<SavedSummary> searchByKeyword(Long userId, String keyword) {
 		return savedSummaryRepository.searchByKeyword(userId, keyword);
+	}
+	
+	public void createSavedSummary(User user, SummaryRequest summaryRequest) {
+		SavedSummary saved = new SavedSummary();
+		saved.setUser(user);
+		saved.setSummaryRequest(summaryRequest);
+		saved.setSavedAt(LocalDateTime.now());
+		
+		String title = titleExtractor.extractTitle(summaryRequest.getOriginalUrl());
+		if (title == null) title = deriveFromContent(summaryRequest.getOriginalContent(), summaryRequest.getSummaryResult());
+		if (title == null || title.isBlank()) title = "제목 없음";
+		
+		saved.setTitle(title);
+		
+		savedSummaryRepository.save(saved);
+	}
+	
+	private String deriveFromContent(String originalContent, String summaryResult) {
+		String candidate = firstMeaningfulLine(summaryResult);
+		if (candidate == null) candidate = firstMeaningfulLine(originalContent);
+		if (candidate == null) return null;
+		
+		candidate = candidate.replaceAll("\\s+", " ").trim();
+		return candidate.length() > 80 ? candidate.substring(0, 80) + "..." : candidate;
+	}
+	
+	private String firstMeaningfulLine(String text) {
+		if (text == null) return null;
+		String[] parts = text.split("[\\n\\r\\.?!]");
+		for (String p : parts) {
+			String s = p.replaceAll("\\s+", " ").trim();
+			if (s.length() >= 5) return s;
+		}
+		return null;
 	}
 }
