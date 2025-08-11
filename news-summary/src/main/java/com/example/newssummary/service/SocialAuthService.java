@@ -7,7 +7,15 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import com.example.newssummary.dao.User;
@@ -34,17 +42,40 @@ public class SocialAuthService {
 	
 	// Google -------------------------------------------
 	@Value("${spring.security.oauth2.client.registration.google.client-id}")
-	private String clientId;
+	private String googleClientId;
 	
 	@Value("${spring.security.oauth2.client.registration.google.client-secret}")
-	private String clientSecret;
+	private String googleClientSecret;
 	
 	@Value("${spring.security.oauth2.client.registration.google.redirect-uri}")
-	private String redirectUri;
+	private String googleRedirectUri;
 	
-	private final String TOKEN_URL = "https://oauth2.googleapis.com/token";
-	private final String USER_INFO_URL = "https://www.googleapis.com/oauth2/v2/userinfo";
+	private final String GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
+	private final String GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v2/userinfo";
 	
+	// Naver -------------------------------------------
+	@Value("{spring.security.oauth2.client.registration.naver.client-id}")
+	private String naverClientId;
+	
+	@Value("{spring.security.oauth2.client.registration.naver.client-secret}")
+	private String naverClientSecret;
+	
+	@Value("{spring.security.oauth2.client.registration.naver.redirect-uri}")
+	private String naverRedirectUri;
+	
+	private final String NAVER_AUTH_URL = "https://nid.naver.com/oauth2.0/authorize";
+	private final String NAVER_TOKEN_URL = "https://nid.naver.com/oauth2.0/token";
+	private final String NAVER_USERINFO_URL = "https://openapi.naver.com/v1/nid/me";
+	
+	
+	
+	public String getGoogleLoginUrl() {
+		return "https://accounts.google.com/o/oauth2/v2/auth"
+				+ "?client_id=" + googleClientId
+				+ "&redirect_uri=" + googleRedirectUri
+				+ "&response_type=code"
+				+ "&scope=profile email";
+	}
 	
 	public String handleGoogleCallback(String code) {
 		String accessToken = requestGoogleAccessToken(code);
@@ -54,33 +85,19 @@ public class SocialAuthService {
 		String username = user.getUsername();
 		String token = jwtTokenProvider.generateToken(username);
 	    
-	    String redirectUrl = String.format(
-	    		"http://localhost:3000/google-success?token=%s&username=%s",
-	    		URLEncoder.encode(token, StandardCharsets.UTF_8),
-	    		URLEncoder.encode(username, StandardCharsets.UTF_8)
-	    );
-	    
-	    return redirectUrl;
+		return buildFrontendRedirect("google-success", token, username);
 	}
 
-	public String getGoogleLoginUrl() {
-		return "https://accounts.google.com/o/oauth2/v2/auth"
-				+ "?client_id=" + clientId
-				+ "&redirect_uri=" + redirectUri
-				+ "&response_type=code"
-				+ "&scope=profile email";
-	}
-	
 	private String requestGoogleAccessToken(String code) {
 		// Access Token 요청
 		Map<String, String> tokenRequest = new HashMap<>();
 		tokenRequest.put("code", code);
-		tokenRequest.put("client_id", clientId);
-		tokenRequest.put("client_secret", clientSecret);
-		tokenRequest.put("redirect_uri", redirectUri);
+		tokenRequest.put("client_id", googleClientId);
+		tokenRequest.put("client_secret", googleClientSecret);
+		tokenRequest.put("redirect_uri", googleRedirectUri);
 		tokenRequest.put("grant_type", "authorization_code");
 		
-		Map<String, Object> tokenResponse = restTemplate.postForObject(TOKEN_URL, tokenRequest, Map.class);
+		Map<String, Object> tokenResponse = restTemplate.postForObject(GOOGLE_TOKEN_URL, tokenRequest, Map.class);
 		
 		String accessToken = (String) tokenResponse.get("access_token");
 		
@@ -89,9 +106,85 @@ public class SocialAuthService {
 	
 	private Map<String, Object> requestGoogleUserInfo(String accessToken) {
 		// User Info 요청
-		String userInfoEndpoint = USER_INFO_URL + "?access_token=" + accessToken;
-		Map<String, Object> userInfo = restTemplate.getForObject(userInfoEndpoint, Map.class);
+		HttpHeaders headers = bearerHeaders(accessToken);
+		ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
+				GOOGLE_USERINFO_URL,
+				HttpMethod.GET, 
+				new HttpEntity<>(headers), 
+				new ParameterizedTypeReference<Map<String, Object>>() {}
+		);
+		return resp.getBody();
+	}
+	
+	// state는 CSRF 방지를 위해 서버에서 생성/검증해야 함
+	public String getNaverLoginUrl(String state) {
+		return NAVER_AUTH_URL
+				+ "?response_type=code"
+				+ "&client_id=" + naverClientId
+				+ "&redirect_uri=" + urlEnc(naverRedirectUri)
+				+ "&state=" + urlEnc(state);
+	}
+	
+	public String handleNaverCallback(String code, String state) {
+		String accessToken = requestNaverAccessToken(code, state);
+		Map<String, Object> userInfo = requestNaverUserInfo(accessToken);
 		
-		return userInfo;
+		Map<String, Object> response = (Map<String, Object>) userInfo.get("response");
+		User user = userService.processNaverUser(response);
+		
+		String username = user.getUsername();
+		String token = jwtTokenProvider.generateToken(username);
+		return buildFrontendRedirect("naver-success", token, username);
+	}
+	
+	private String requestNaverAccessToken(String code, String state) {
+		HttpHeaders headers = formHeaders();
+		MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+		body.add("grant_type", "authorization_code");
+		body.add("client_id", naverClientId);
+		body.add("client_secret", naverClientSecret);
+		body.add("code", code);
+		body.add("state", state);
+		
+		HttpEntity<MultiValueMap<String, String>> req = new HttpEntity<>(body, headers);
+		ResponseEntity<Map> resp = restTemplate.postForEntity(NAVER_TOKEN_URL, req, Map.class);
+		return (String) resp.getBody().get("access_token");
+	}
+	
+	private Map<String, Object> requestNaverUserInfo(String accessToken) {
+		HttpHeaders headers = bearerHeaders(accessToken);
+		ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
+				NAVER_USERINFO_URL, 
+				HttpMethod.GET, 
+				new HttpEntity<>(headers), 
+				new ParameterizedTypeReference<Map<String, Object>>() {}
+		);
+		return resp.getBody();
+	}
+	
+	// 공통 유틸
+	private HttpHeaders formHeaders() {
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+		return headers;
+	}
+	
+	private HttpHeaders bearerHeaders(String accessToken) {
+		HttpHeaders headers = new HttpHeaders();
+		headers.setBasicAuth(accessToken);
+		return headers;
+	}
+	
+	private String buildFrontendRedirect(String providerSuccessPath, String token, String username) {
+		return String.format(
+				"http://localhost:3000/%s?token=%s&username=%S", 
+				providerSuccessPath,
+				urlEnc(token),
+				urlEnc(username)
+		);
+	}
+	
+	private String urlEnc(String v) {
+		return URLEncoder.encode(v, StandardCharsets.UTF_8);
 	}
 }

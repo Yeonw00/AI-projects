@@ -84,4 +84,9 @@ public class UserService {
 		}
 		return username;
 	}
+
+	public User processNaverUser(Map<String, Object> response) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
