@@ -2,7 +2,6 @@ package com.example.newssummary.service;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,30 +89,53 @@ public class SocialAuthService {
 
 	private String requestGoogleAccessToken(String code) {
 		// Access Token 요청
-		Map<String, String> tokenRequest = new HashMap<>();
-		tokenRequest.put("code", code);
-		tokenRequest.put("client_id", googleClientId);
-		tokenRequest.put("client_secret", googleClientSecret);
-		tokenRequest.put("redirect_uri", googleRedirectUri);
-		tokenRequest.put("grant_type", "authorization_code");
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 		
-		Map<String, Object> tokenResponse = restTemplate.postForObject(GOOGLE_TOKEN_URL, tokenRequest, Map.class);
+		MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+		body.add("code", code);
+		body.add("client_id", googleClientId);
+		body.add("client_secret", googleClientSecret);
+		body.add("redirect_uri", googleRedirectUri);
+		body.add("grant_type", "authorization_code");
 		
-		String accessToken = (String) tokenResponse.get("access_token");
+		HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
 		
-		return accessToken;
+		ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
+				GOOGLE_TOKEN_URL, 
+				HttpMethod.POST,
+				request, 
+				new ParameterizedTypeReference<>() {}
+		);
+		
+		Map<String, Object> tokenResponse = resp.getBody();
+		if (tokenResponse == null || tokenResponse.get("access_token") == null) {
+			throw new IllegalStateException("Google token request failed : " + tokenResponse);
+		}
+		return (String) tokenResponse.get("access_token");
 	}
 	
 	private Map<String, Object> requestGoogleUserInfo(String accessToken) {
 		// User Info 요청
-		HttpHeaders headers = bearerHeaders(accessToken);
+		if (accessToken == null || accessToken.isBlank()) {
+			throw new IllegalArgumentException("accessToken is empty");
+		}
+		
+		HttpHeaders headers = new HttpHeaders();
+		headers.setBearerAuth(accessToken);
+		
 		ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
 				GOOGLE_USERINFO_URL,
 				HttpMethod.GET, 
 				new HttpEntity<>(headers), 
-				new ParameterizedTypeReference<Map<String, Object>>() {}
+				new ParameterizedTypeReference<>() {}
 		);
-		return resp.getBody();
+		
+		Map<String, Object> userInfo = resp.getBody();
+		if (userInfo == null || userInfo.isEmpty()) {
+			throw new IllegalStateException("Google userinfo is empty");
+		}
+		return userInfo;
 	}
 	
 	// state는 CSRF 방지를 위해 서버에서 생성/검증해야 함
