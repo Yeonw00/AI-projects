@@ -2,11 +2,14 @@ package com.example.newssummary.service;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -19,6 +22,8 @@ import org.springframework.web.client.RestTemplate;
 
 import com.example.newssummary.dao.User;
 import com.example.newssummary.security.JwtTokenProvider;
+
+import jakarta.servlet.http.HttpServletResponse;
 
 @Service
 public class SocialAuthService {
@@ -33,10 +38,15 @@ public class SocialAuthService {
 	private RestTemplate restTemplate;
 	
 	@Autowired
-    public SocialAuthService(UserService userService, JwtTokenProvider jwtTokenProvider, RestTemplate restTemplate) {
+	private StringRedisTemplate redis;
+	
+	@Autowired
+    public SocialAuthService(UserService userService, JwtTokenProvider jwtTokenProvider, 
+    		RestTemplate restTemplate, StringRedisTemplate redis) {
         this.userService = userService;
         this.jwtTokenProvider = jwtTokenProvider;
         this.restTemplate = restTemplate;
+        this.redis = redis;
     }
 	
 	// Google -------------------------------------------
@@ -66,6 +76,8 @@ public class SocialAuthService {
 	private final String NAVER_TOKEN_URL = "https://nid.naver.com/oauth2.0/token";
 	private final String NAVER_USERINFO_URL = "https://openapi.naver.com/v1/nid/me";
 	
+	private final String KEY_PREFIX = "oauth:state:";
+	private final Duration TTL = Duration.ofMinutes(10);	
 	
 	
 	public String getGoogleLoginUrl() {
@@ -139,7 +151,9 @@ public class SocialAuthService {
 	}
 	
 	// state는 CSRF 방지를 위해 서버에서 생성/검증해야 함
-	public String getNaverLoginUrl(String state) {
+	public String getNaverLoginUrl() {
+		String state = issueAndStoreState();
+		
 		return NAVER_AUTH_URL
 				+ "?response_type=code"
 				+ "&client_id=" + naverClientId
@@ -148,7 +162,16 @@ public class SocialAuthService {
 	}
 	
 	public String handleNaverCallback(String code, String state) {
+		if (code == null || code.isBlank() || state == null || state.isBlank()) {
+	        throw new IllegalArgumentException("Missing code/state");
+	    }
+		
+		if(verifyAndConsume(state)) {
+			throw new SecurityException("Invalid state");
+		}
+		
 		String accessToken = requestNaverAccessToken(code, state);
+		
 		Map<String, Object> userInfo = requestNaverUserInfo(accessToken);
 		
 		Map<String, Object> response = (Map<String, Object>) userInfo.get("response");
@@ -208,5 +231,21 @@ public class SocialAuthService {
 	
 	private String urlEnc(String v) {
 		return URLEncoder.encode(v, StandardCharsets.UTF_8);
+	}
+	
+	private String issueAndStoreState() {
+		String state = UUID.randomUUID().toString();
+		redis.opsForValue().set(KEY_PREFIX + state, "1", TTL);
+		return state;
+	}
+	
+	private boolean verifyAndConsume(String state) {
+		String key = KEY_PREFIX + state;
+		Boolean exists = redis.hasKey(key);
+		if (Boolean.TRUE.equals(exists)) {
+			redis.delete(key); // 1회용
+			return true;
+		}
+		return false;
 	}
 }

@@ -141,4 +141,22 @@ public class UserAuthController {
 		String redirectUrl = socialAuthService.handleGoogleCallback(code);
 		response.sendRedirect(redirectUrl);
 	}
+	
+	@GetMapping("/naver/login")
+	public String naverLoginUrl() {
+		return socialAuthService.getNaverLoginUrl();
+	}
+	
+//	google 로그인 callback (code -> Access Token -> User Info)
+	@GetMapping("/naver/callback")
+	public void naverCallback(@RequestParam("code") String code, @RequestParam String state, HttpServletResponse response) throws IOException {
+		try {
+			String redirectUrl = socialAuthService.handleNaverCallback(code, code);
+			response.sendRedirect(redirectUrl);
+		} catch (SecurityException e) {
+			response.sendError(400, "invalid state");
+		} catch (Exception e) {
+			response.sendError(500, "Naver login failed");
+		}
+	}
 }

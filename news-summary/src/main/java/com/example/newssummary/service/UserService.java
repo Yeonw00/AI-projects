@@ -14,7 +14,8 @@ import com.example.newssummary.dao.User;
 import com.example.newssummary.dto.SignupRequest;
 import com.example.newssummary.dto.UserLoginRequest;
 import com.example.newssummary.repository.UserRepository;
-import com.example.newssummary.security.JwtTokenProvider;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class UserService {
@@ -45,6 +46,7 @@ public class UserService {
 		return user;
 	}
 	
+	@Transactional
 	public User processGoogleUser(Map<String, Object> userInfo) {
 		// 1.Google에서 받은 정보 추출
 		String email = (String) userInfo.get("email");
@@ -85,8 +87,35 @@ public class UserService {
 		return username;
 	}
 
-	public User processNaverUser(Map<String, Object> response) {
-		// TODO Auto-generated method stub
-		return null;
+	@Transactional
+	public User processNaverUser(Map<String, Object> naver) {
+		// 1.Naver에서 받은 정보 추출
+		String naverId = (String) naver.get("id");
+		String email = (String) naver.get("email");
+		
+		if (naverId == null || naverId.isBlank()) {
+			throw new IllegalArgumentException("naver id is missing");
+		}
+		
+		// 2.사용자 존재 여부 확인
+		Optional<User> optionalUser = userRepository.findByEmail(email);
+		User user;
+		
+		if(optionalUser.isPresent()) {
+			// 기존 사용자
+			user = optionalUser.get();
+			user.setLastLoginAt(LocalDateTime.now());
+			userRepository.save(user);
+		} else {
+			// 신규 가입 
+			String baseUsername = naverId;
+			String username = generateUniqueUsername(baseUsername);
+			
+			user = new User(username, email);
+			userRepository.save(user);
+		}
+		
+		// 3.JWT 토큰 생성
+		return user;
 	}
 }
