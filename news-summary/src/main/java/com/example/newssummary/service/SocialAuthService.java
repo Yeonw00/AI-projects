@@ -166,7 +166,7 @@ public class SocialAuthService {
 	        throw new IllegalArgumentException("Missing code/state");
 	    }
 		
-		if(verifyAndConsume(state)) {
+		if(!verifyAndConsume(state)) {
 			throw new SecurityException("Invalid state");
 		}
 		
@@ -189,6 +189,7 @@ public class SocialAuthService {
 		body.add("client_id", naverClientId);
 		body.add("client_secret", naverClientSecret);
 		body.add("code", code);
+		System.out.println("code : " + code);
 		body.add("state", state);
 		
 		HttpEntity<MultiValueMap<String, String>> req = new HttpEntity<>(body, headers);
