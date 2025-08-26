@@ -19,11 +19,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.example.newssummary.dao.User;
 import com.example.newssummary.security.JwtTokenProvider;
-
-import jakarta.servlet.http.HttpServletResponse;
 
 @Service
 public class SocialAuthService {
@@ -63,13 +62,13 @@ public class SocialAuthService {
 	private final String GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v2/userinfo";
 	
 	// Naver -------------------------------------------
-	@Value("{spring.security.oauth2.client.registration.naver.client-id}")
+	@Value("${spring.security.oauth2.client.registration.naver.client-id}")
 	private String naverClientId;
 	
-	@Value("{spring.security.oauth2.client.registration.naver.client-secret}")
+	@Value("${spring.security.oauth2.client.registration.naver.client-secret}")
 	private String naverClientSecret;
 	
-	@Value("{spring.security.oauth2.client.registration.naver.redirect-uri}")
+	@Value("${spring.security.oauth2.client.registration.naver.redirect-uri}")
 	private String naverRedirectUri;
 	
 	private final String NAVER_AUTH_URL = "https://nid.naver.com/oauth2.0/authorize";
@@ -154,11 +153,16 @@ public class SocialAuthService {
 	public String getNaverLoginUrl() {
 		String state = issueAndStoreState();
 		
-		return NAVER_AUTH_URL
-				+ "?response_type=code"
-				+ "&client_id=" + naverClientId
-				+ "&redirect_uri=" + urlEnc(naverRedirectUri)
-				+ "&state=" + urlEnc(state);
+		String url = UriComponentsBuilder
+				.fromHttpUrl(NAVER_AUTH_URL)
+				.queryParam("response_type", "code")
+				.queryParam("client_id", naverClientId)
+				.queryParam("redirect_uri", naverRedirectUri)
+				.queryParam("state", state)
+				.build(true)
+				.toUriString();
+		System.out.println("[NAVER AUTH URL] " + url);
+		return url;		
 	}
 	
 	public String handleNaverCallback(String code, String state) {

@@ -1,6 +1,7 @@
 package com.example.newssummary.controller;
 
 import java.io.IOException;
+import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -143,8 +144,9 @@ public class UserAuthController {
 	}
 	
 	@GetMapping("/naver/login")
-	public String naverLoginUrl() {
-		return socialAuthService.getNaverLoginUrl();
+	public void naverLoginUrl(HttpServletResponse response) throws IOException {
+		response.sendRedirect(socialAuthService.getNaverLoginUrl());
+		
 	}
 	
 //	naver 로그인 callback (code -> Access Token -> User Info)
