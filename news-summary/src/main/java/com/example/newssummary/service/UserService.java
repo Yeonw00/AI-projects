@@ -88,17 +88,24 @@ public class UserService {
 	}
 
 	@Transactional
-	public User processNaverUser(Map<String, Object> naver) {
+	public User processNaverUser(Map<String, Object> userInfo) {
+		String provider = "naver";
 		// 1.Naver에서 받은 정보 추출
-		String naverId = (String) naver.get("id");
-		String email = (String) naver.get("email");
+		 Map<String, Object> response = (Map<String, Object>) userInfo.get("response");
+	    if (response == null) {
+	        throw new IllegalArgumentException("Naver response is missing");
+	    }
 		
-		if (naverId == null || naverId.isBlank()) {
-			throw new IllegalArgumentException("naver id is missing");
+	    String id = (String) response.get("id");
+		String email = (String) response.get("email");
+		if (id == null || id.isBlank()) {
+			throw new IllegalArgumentException("naver Id is missing");
 		}
 		
+		
+		String naverId = id.substring(0,8);
 		// 2.사용자 존재 여부 확인
-		Optional<User> optionalUser = userRepository.findByEmail(email);
+		Optional<User> optionalUser = userRepository.findByEmail(naverId + "@naver.com");
 		User user;
 		
 		if(optionalUser.isPresent()) {
@@ -108,10 +115,10 @@ public class UserService {
 			userRepository.save(user);
 		} else {
 			// 신규 가입 
-			String baseUsername = naverId;
-			String username = generateUniqueUsername(baseUsername);
+			String username = generateUniqueUsername("naver_" + naverId);
+			String newEmail = naverId.substring(0,8) + "@naver.com";
+			user = new User(username, newEmail);
 			
-			user = new User(username, email);
 			userRepository.save(user);
 		}
 		

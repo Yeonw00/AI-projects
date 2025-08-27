@@ -161,7 +161,6 @@ public class SocialAuthService {
 				.queryParam("state", state)
 				.build(true)
 				.toUriString();
-		System.out.println("[NAVER AUTH URL] " + url);
 		return url;		
 	}
 	
@@ -178,8 +177,7 @@ public class SocialAuthService {
 		
 		Map<String, Object> userInfo = requestNaverUserInfo(accessToken);
 		
-		Map<String, Object> response = (Map<String, Object>) userInfo.get("response");
-		User user = userService.processNaverUser(response);
+		User user = userService.processNaverUser(userInfo);
 		
 		String username = user.getUsername();
 		String token = jwtTokenProvider.generateToken(username);
@@ -193,7 +191,6 @@ public class SocialAuthService {
 		body.add("client_id", naverClientId);
 		body.add("client_secret", naverClientSecret);
 		body.add("code", code);
-		System.out.println("code : " + code);
 		body.add("state", state);
 		
 		HttpEntity<MultiValueMap<String, String>> req = new HttpEntity<>(body, headers);
@@ -202,14 +199,25 @@ public class SocialAuthService {
 	}
 	
 	private Map<String, Object> requestNaverUserInfo(String accessToken) {
-		HttpHeaders headers = bearerHeaders(accessToken);
+		// User Info 요청
+		if (accessToken == null || accessToken.isBlank()) {
+			throw new IllegalArgumentException("accessToken is empty");
+		}
+		
+		HttpHeaders headers = new HttpHeaders();
+		headers.setBearerAuth(accessToken);
+				
 		ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
 				NAVER_USERINFO_URL, 
 				HttpMethod.GET, 
 				new HttpEntity<>(headers), 
 				new ParameterizedTypeReference<Map<String, Object>>() {}
 		);
-		return resp.getBody();
+		Map<String, Object> userInfo = resp.getBody();
+		if (userInfo == null || userInfo.isEmpty()) {
+			throw new IllegalStateException("Google userinfo is empty");
+		}
+		return userInfo;
 	}
 	
 	// 공통 유틸
@@ -219,15 +227,9 @@ public class SocialAuthService {
 		return headers;
 	}
 	
-	private HttpHeaders bearerHeaders(String accessToken) {
-		HttpHeaders headers = new HttpHeaders();
-		headers.setBasicAuth(accessToken);
-		return headers;
-	}
-	
 	private String buildFrontendRedirect(String providerSuccessPath, String token, String username) {
 		return String.format(
-				"http://localhost:3000/%s?token=%s&username=%S", 
+				"http://localhost:3000/%s?token=%s&username=%s", 
 				providerSuccessPath,
 				urlEnc(token),
 				urlEnc(username)
