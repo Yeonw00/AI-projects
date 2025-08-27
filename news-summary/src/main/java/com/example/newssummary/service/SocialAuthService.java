@@ -159,6 +159,7 @@ public class SocialAuthService {
 				.queryParam("client_id", naverClientId)
 				.queryParam("redirect_uri", naverRedirectUri)
 				.queryParam("state", state)
+				.queryParam("auth_type", "reprompt")
 				.build(true)
 				.toUriString();
 		return url;		
