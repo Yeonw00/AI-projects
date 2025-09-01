@@ -71,12 +71,33 @@ public class SocialAuthService {
 	@Value("${spring.security.oauth2.client.registration.naver.redirect-uri}")
 	private String naverRedirectUri;
 	
-	private final String NAVER_AUTH_URL = "https://nid.naver.com/oauth2.0/authorize";
-	private final String NAVER_TOKEN_URL = "https://nid.naver.com/oauth2.0/token";
-	private final String NAVER_USERINFO_URL = "https://openapi.naver.com/v1/nid/me";
+	@Value("${spring.security.oauth2.client.provider.naver.authorization-uri}")
+	private String naverAuthUrl;
+	
+	@Value("${spring.security.oauth2.client.provider.naver.token-uri}")
+	private String naverTokenUrl;
+	
+	@Value("${spring.security.oauth2.client.provider.naver.user-info-uri}")
+	private String naverUserInfoUrl;
 	
 	private final String KEY_PREFIX = "oauth:state:";
 	private final Duration TTL = Duration.ofMinutes(10);	
+	
+	// Kakao -------------------------------------------
+	@Value("${spring.security.oauth2.client.registration.kakao.client-id}")
+	private String kakaoClientId;
+	
+	@Value("${spring.security.oauth2.client.registration.kakao.redirect-uri}")
+	private String kakaoRedirectUri;
+	
+	@Value("${spring.security.oauth2.client.provider.kakao.authorization-uri}")
+	private String kakaoAuthUrl;
+	
+	@Value("${spring.security.oauth2.client.provider.kakao.token-uri}")
+	private String kakaoTokenUrl;
+	
+	@Value("${spring.security.oauth2.client.provider.kakao.user-info-uri}")
+	private String kakaoUserInfoUrl;
 	
 	
 	public String getGoogleLoginUrl() {
@@ -154,7 +175,7 @@ public class SocialAuthService {
 		String state = issueAndStoreState();
 		
 		String url = UriComponentsBuilder
-				.fromHttpUrl(NAVER_AUTH_URL)
+				.fromHttpUrl(naverAuthUrl)
 				.queryParam("response_type", "code")
 				.queryParam("client_id", naverClientId)
 				.queryParam("redirect_uri", naverRedirectUri)
@@ -195,7 +216,7 @@ public class SocialAuthService {
 		body.add("state", state);
 		
 		HttpEntity<MultiValueMap<String, String>> req = new HttpEntity<>(body, headers);
-		ResponseEntity<Map> resp = restTemplate.postForEntity(NAVER_TOKEN_URL, req, Map.class);
+		ResponseEntity<Map> resp = restTemplate.postForEntity(naverTokenUrl, req, Map.class);
 		return (String) resp.getBody().get("access_token");
 	}
 	
@@ -209,14 +230,83 @@ public class SocialAuthService {
 		headers.setBearerAuth(accessToken);
 				
 		ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-				NAVER_USERINFO_URL, 
+				naverUserInfoUrl, 
 				HttpMethod.GET, 
 				new HttpEntity<>(headers), 
 				new ParameterizedTypeReference<Map<String, Object>>() {}
 		);
 		Map<String, Object> userInfo = resp.getBody();
 		if (userInfo == null || userInfo.isEmpty()) {
-			throw new IllegalStateException("Google userinfo is empty");
+			throw new IllegalStateException("Naver userinfo is empty");
+		}
+		return userInfo;
+	}
+	
+	public String getKakaoLoginUrl() {
+		String state = issueAndStoreState();
+		
+		String url = UriComponentsBuilder
+				.fromHttpUrl(kakaoAuthUrl)
+				.queryParam("response_type", "code")
+				.queryParam("client_id", kakaoClientId)
+				.queryParam("redirect_uri", kakaoRedirectUri)
+				.queryParam("state", state)
+				.build(true)
+				.toUriString();
+		return url;		
+	}
+	
+	public String handleKakaoCallback(String code, String state) {
+		if (code == null || code.isBlank() || state == null || state.isBlank()) {
+	        throw new IllegalArgumentException("Missing code/state");
+	    }
+		
+		if(!verifyAndConsume(state)) {
+			throw new SecurityException("Invalid state");
+		}
+		
+		String accessToken = requestKakaoAccessToken(code, state);
+		
+		Map<String, Object> userInfo = requestKakaoUserInfo(accessToken);
+		
+		User user = userService.processKakaoUser(userInfo);
+		
+		String username = user.getUsername();
+		String token = jwtTokenProvider.generateToken(username);
+		return buildFrontendRedirect("kakao-success", token, username);
+	}
+	
+	private String requestKakaoAccessToken(String code, String state) {
+		HttpHeaders headers = formHeaders();
+		MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+		body.add("grant_type", "authorization_code");
+		body.add("client_id", kakaoClientId);
+		body.add("code", code);
+		body.add("state", state);
+		
+		HttpEntity<MultiValueMap<String, String>> req = new HttpEntity<>(body, headers);
+		ResponseEntity<Map> resp = restTemplate.postForEntity(kakaoTokenUrl, req, Map.class);
+		return (String) resp.getBody().get("access_token");
+	}
+	
+	private Map<String, Object> requestKakaoUserInfo(String accessToken) {
+		// User Info 요청
+		if (accessToken == null || accessToken.isBlank()) {
+			throw new IllegalArgumentException("accessToken is empty");
+		}
+		
+		HttpHeaders headers = new HttpHeaders();
+		headers.setBearerAuth(accessToken);
+				
+		ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
+				kakaoUserInfoUrl, 
+				HttpMethod.GET, 
+				new HttpEntity<>(headers), 
+				new ParameterizedTypeReference<Map<String, Object>>() {}
+		);
+		Map<String, Object> userInfo = resp.getBody();
+		if (userInfo == null || userInfo.isEmpty()) {
+			throw new IllegalStateException("Kakao userinfo is empty");
 		}
 		return userInfo;
 	}

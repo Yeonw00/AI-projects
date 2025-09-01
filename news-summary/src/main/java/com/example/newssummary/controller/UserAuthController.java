@@ -161,4 +161,23 @@ public class UserAuthController {
 			response.sendError(500, "Naver login failed");
 		}
 	}
+	
+	@GetMapping("/kakao/login")
+	public void kakaoLoginUrl(HttpServletResponse response) throws IOException {
+		response.sendRedirect(socialAuthService.getKakaoLoginUrl());
+		
+	}
+	
+//	kakao 로그인 callback (code -> Access Token -> User Info)
+	@GetMapping("/kakao/callback")
+	public void kakaoCallback(@RequestParam("code") String code, @RequestParam String state, HttpServletResponse response) throws IOException {
+		try {
+			String redirectUrl = socialAuthService.handleKakaoCallback(code, state);
+			response.sendRedirect(redirectUrl);
+		} catch (SecurityException e) {
+			response.sendError(400, "invalid state");
+		} catch (Exception e) {
+			response.sendError(500, "Kakao login failed");
+		}
+	}
 }

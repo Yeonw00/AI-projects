@@ -125,4 +125,42 @@ public class UserService {
 		// 3.JWT 토큰 생성
 		return user;
 	}
+
+	public User processKakaoUser(Map<String, Object> userInfo) {
+		String provider = "kakao";
+		// 1.Kakao서 받은 정보 추출
+		 Map<String, Object> response = (Map<String, Object>) userInfo.get("response");
+	    if (response == null) {
+	        throw new IllegalArgumentException("Kakao response is missing");
+	    }
+		
+	    String id = (String) response.get("id");
+		String email = (String) response.get("email");
+		if (id == null || id.isBlank()) {
+			throw new IllegalArgumentException("kakao Id is missing");
+		}
+		
+		
+		String kakaoId = id.substring(0,8);
+		// 2.사용자 존재 여부 확인
+		Optional<User> optionalUser = userRepository.findByEmail(kakaoId + "@kakao.com");
+		User user;
+		
+		if(optionalUser.isPresent()) {
+			// 기존 사용자
+			user = optionalUser.get();
+			user.setLastLoginAt(LocalDateTime.now());
+			userRepository.save(user);
+		} else {
+			// 신규 가입 
+			String username = generateUniqueUsername("kakao_" + kakaoId);
+			String newEmail = kakaoId.substring(0,8) + "@kakao.com";
+			user = new User(username, newEmail);
+			
+			userRepository.save(user);
+		}
+		
+		// 3.JWT 토큰 생성
+		return user;
+	}
 }
