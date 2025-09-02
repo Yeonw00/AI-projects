@@ -32,43 +32,6 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http, ClientRegistrationRepository clientRegistrationRepository) throws Exception {
 		
-		// 스프링 기본 리졸버
-        DefaultOAuth2AuthorizationRequestResolver defaultResolver =
-                new DefaultOAuth2AuthorizationRequestResolver(
-                        clientRegistrationRepository, "/oauth2/authorization");
-
-        // redirect_uri만 인코딩 강제하는 래퍼 (익명 클래스)
-        OAuth2AuthorizationRequestResolver encodingResolver = new OAuth2AuthorizationRequestResolver() {
-            @Override
-            public OAuth2AuthorizationRequest resolve(HttpServletRequest request) {
-                OAuth2AuthorizationRequest req = defaultResolver.resolve(request);
-                return encodeRedirect(req);
-            }
-
-            @Override
-            public OAuth2AuthorizationRequest resolve(HttpServletRequest request, String clientRegistrationId) {
-                OAuth2AuthorizationRequest req = defaultResolver.resolve(request, clientRegistrationId);
-                return encodeRedirect(req);
-            }
-
-            private OAuth2AuthorizationRequest encodeRedirect(OAuth2AuthorizationRequest req) {
-                if (req == null) return null;
-
-                String original = req.getAuthorizationRequestUri();
-                String encodedRedirect = UriUtils.encode(req.getRedirectUri(), StandardCharsets.UTF_8);
-
-                String rebuilt = UriComponentsBuilder.fromUriString(original)
-                        .replaceQueryParam("redirect_uri", encodedRedirect)
-                        .build(true) // 안전 인코딩
-                        .toUriString();
-
-                return OAuth2AuthorizationRequest.from(req)
-                        .authorizationRequestUri(rebuilt)
-                        .build();
-            }
-        };
-
-		
 		http
 			.csrf(csrf -> csrf.disable())
 			.cors(Customizer.withDefaults())

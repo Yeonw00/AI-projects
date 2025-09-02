@@ -251,6 +251,7 @@ public class SocialAuthService {
 				.queryParam("client_id", kakaoClientId)
 				.queryParam("redirect_uri", kakaoRedirectUri)
 				.queryParam("state", state)
+				.queryParam("scope", "account_email")
 				.build(true)
 				.toUriString();
 		return url;		
