@@ -42,7 +42,6 @@ public class SecurityConfig {
 				).permitAll()
 				.anyRequest().authenticated()
 			)
-			.oauth2Login(o -> o.redirectionEndpoint(r -> r.baseUri("/api/auth/naver/callback/*")))
 			.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 		return http.build();	
 	}
