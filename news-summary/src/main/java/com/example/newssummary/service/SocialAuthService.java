@@ -282,12 +282,16 @@ public class SocialAuthService {
 		MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
 		body.add("grant_type", "authorization_code");
 		body.add("client_id", kakaoClientId);
+		body.add("redirect_uri", kakaoRedirectUri);
 		body.add("code", code);
-		body.add("state", state);
 		
 		HttpEntity<MultiValueMap<String, String>> req = new HttpEntity<>(body, headers);
 		ResponseEntity<Map> resp = restTemplate.postForEntity(kakaoTokenUrl, req, Map.class);
-		return (String) resp.getBody().get("access_token");
+		Map<?,?> map = resp.getBody();
+		if (map == null || map.get("access_token") == null) {
+			throw new IllegalStateException("No access_token from kakao");
+		}
+		return (String) map.get("access_token");
 	}
 	
 	private Map<String, Object> requestKakaoUserInfo(String accessToken) {
@@ -302,7 +306,7 @@ public class SocialAuthService {
 		ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
 				kakaoUserInfoUrl, 
 				HttpMethod.GET, 
-				new HttpEntity<>(headers), 
+				new HttpEntity<>(null, headers), 
 				new ParameterizedTypeReference<Map<String, Object>>() {}
 		);
 		Map<String, Object> userInfo = resp.getBody();
@@ -328,7 +332,7 @@ public class SocialAuthService {
 		);
 	}
 	
-	private String urlEnc(String v) {
+	public String urlEnc(String v) {
 		return URLEncoder.encode(v, StandardCharsets.UTF_8);
 	}
 	

@@ -129,20 +129,14 @@ public class UserService {
 	public User processKakaoUser(Map<String, Object> userInfo) {
 		String provider = "kakao";
 		// 1.Kakao서 받은 정보 추출
-		 Map<String, Object> response = (Map<String, Object>) userInfo.get("response");
-	    if (response == null) {
+		 Map<String, Object> kakaoAccount = (Map<String, Object>) userInfo.get("kakao_account");
+	    if (kakaoAccount == null) {
 	        throw new IllegalArgumentException("Kakao response is missing");
 	    }
 		
-	    String id = (String) response.get("id");
-		String email = (String) response.get("email");
-		if (id == null || id.isBlank()) {
-			throw new IllegalArgumentException("kakao Id is missing");
-		}
+		String email = (String) kakaoAccount.get("email");
 		
-		
-		String kakaoId = id.substring(0,8);
-		// 2.사용자 존재 여부 확인
+		String kakaoId = email.split("@")[0];
 		Optional<User> optionalUser = userRepository.findByEmail(kakaoId + "@kakao.com");
 		User user;
 		
@@ -154,7 +148,7 @@ public class UserService {
 		} else {
 			// 신규 가입 
 			String username = generateUniqueUsername("kakao_" + kakaoId);
-			String newEmail = kakaoId.substring(0,8) + "@kakao.com";
+			String newEmail = kakaoId + "@kakao.com";
 			user = new User(username, newEmail);
 			
 			userRepository.save(user);
