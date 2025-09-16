@@ -7,10 +7,12 @@ import java.util.List;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
@@ -49,13 +51,22 @@ public class User {
 	@OneToMany(mappedBy = "user")
 	private List<SavedSummary> savedSummaries;
 	
+	@OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private UserBalance balance;
+	
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<CoinLedger> ledgers;
+	
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<PaymentOrder> orders;
+	
 	public User() {
 		
 	}
 	
 	public User(Long id, String username, String email, String passwordHash, LocalDateTime createdAt,
 			LocalDateTime lastLoginAt, List<SummaryRequest> summaryRequests, List<ErrorLog> errorLogs,
-			List<SavedSummary> savedSummaries) {
+			List<SavedSummary> savedSummaries, UserBalance balance, List<CoinLedger> ledgers) {
 		super();
 		this.id = id;
 		this.username = username;
@@ -66,8 +77,10 @@ public class User {
 		this.summaryRequests = summaryRequests;
 		this.errorLogs = errorLogs;
 		this.savedSummaries = savedSummaries;
+		this.balance = balance;
+		this.ledgers = ledgers;
 	}
-	
+
 	// Google Oauth로 가입을 위한 생성자
 	public User(String username, String email) {
 	    this.username = username;
@@ -77,6 +90,8 @@ public class User {
 	    this.summaryRequests = new ArrayList<>();
 	    this.errorLogs = new ArrayList<>();
 	    this.savedSummaries = new ArrayList<>();
+	    this.balance = balance;
+	    this.ledgers = new ArrayList<>();
 	}
 
 	public Long getId() {
@@ -149,6 +164,30 @@ public class User {
 
 	public void setSavedSummaries(List<SavedSummary> savedSummaries) {
 		this.savedSummaries = savedSummaries;
+	}
+	
+	public UserBalance getBalance() {
+		return balance;
+	}
+
+	public void setBalance(UserBalance balance) {
+		this.balance = balance;
+	}
+
+	public List<CoinLedger> getLedgers() {
+		return ledgers;
+	}
+
+	public void setLedgers(List<CoinLedger> ledgers) {
+		this.ledgers = ledgers;
+	}
+	
+	public List<PaymentOrder> getOrders() {
+		return orders;
+	}
+
+	public void setOrders(List<PaymentOrder> orders) {
+		this.orders = orders;
 	}
 
 	@Override

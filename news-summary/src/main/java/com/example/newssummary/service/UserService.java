@@ -11,8 +11,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.example.newssummary.dao.User;
+import com.example.newssummary.dao.UserBalance;
 import com.example.newssummary.dto.SignupRequest;
 import com.example.newssummary.dto.UserLoginRequest;
+import com.example.newssummary.repository.UserBalanceRepository;
 import com.example.newssummary.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
@@ -23,8 +25,12 @@ public class UserService {
 	private UserRepository userRepository;
 	
 	@Autowired
+	private UserBalanceRepository userBalanceRepository;
+	
+	@Autowired
 	private PasswordEncoder passwordEncoder;
 	
+	@Transactional
 	public void singup(SignupRequest request) {
 		if (userRepository.findByUsername(request.getUsername()).isPresent()) {
 			throw new IllegalArgumentException("이미 존재하는 사용자입니다.");
@@ -34,6 +40,11 @@ public class UserService {
 		user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
 		user.setEmail(request.getEmail());
 		userRepository.save(user);
+		
+		UserBalance balance = new UserBalance();
+		balance.setUser(user);
+		balance.setBalance(300);
+		userBalanceRepository.save(balance);
 	}
 	
 	public User login(UserLoginRequest request) {
@@ -70,6 +81,11 @@ public class UserService {
 			
 			user = new User(username, email);
 			userRepository.save(user);
+			
+			UserBalance balance = new UserBalance();
+			balance.setUser(user);
+			balance.setBalance(300);
+			userBalanceRepository.save(balance);
 		}
 		
 		// 3.JWT 토큰 생성
@@ -118,8 +134,12 @@ public class UserService {
 			String username = generateUniqueUsername("naver_" + naverId);
 			String newEmail = naverId.substring(0,8) + "@naver.com";
 			user = new User(username, newEmail);
-			
 			userRepository.save(user);
+			
+			UserBalance balance = new UserBalance();
+			balance.setUser(user);
+			balance.setBalance(300);
+			userBalanceRepository.save(balance);
 		}
 		
 		// 3.JWT 토큰 생성
@@ -150,8 +170,12 @@ public class UserService {
 			String username = generateUniqueUsername("kakao_" + kakaoId);
 			String newEmail = kakaoId + "@kakao.com";
 			user = new User(username, newEmail);
-			
 			userRepository.save(user);
+			
+			UserBalance balance = new UserBalance();
+			balance.setUser(user);
+			balance.setBalance(300);
+			userBalanceRepository.save(balance);
 		}
 		
 		// 3.JWT 토큰 생성
