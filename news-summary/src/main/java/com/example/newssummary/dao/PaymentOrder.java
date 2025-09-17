@@ -55,6 +55,8 @@ public class PaymentOrder {
 		this.paidAt = paidAt;
 	}
 
+	public PaymentOrder() {}
+
 
 	public Long getId() {
 		return id;
