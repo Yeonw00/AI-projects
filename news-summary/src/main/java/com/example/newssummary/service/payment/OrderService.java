@@ -1,4 +1,4 @@
-package com.example.newssummary.service;
+package com.example.newssummary.service.payment;
 
 import java.util.UUID;
 
