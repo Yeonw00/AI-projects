@@ -39,6 +39,8 @@ public class CoinLedger {
 	
 	private LocalDateTime createdAt;
 
+	public CoinLedger() {}
+	
 	public CoinLedger(Long id, User user, String type, long amount, long balnaceAfter, String refKey,
 			LocalDateTime createdAt) {
 		super();
@@ -51,7 +53,16 @@ public class CoinLedger {
 		this.createdAt = createdAt;
 	}
 	
-	public CoinLedger() {}
+	public CoinLedger(User user, String type, long amount, long balnaceAfter, String refKey,
+			LocalDateTime createdAt) {
+		super();
+		this.user = user;
+		this.type = type;
+		this.amount = amount;
+		this.balnaceAfter = balnaceAfter;
+		this.refKey = refKey;
+		this.createdAt = createdAt;
+	}
 
 	public Long getId() {
 		return id;

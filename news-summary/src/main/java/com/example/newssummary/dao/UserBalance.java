@@ -38,6 +38,12 @@ public class UserBalance {
 		this.balance = balance;
 		this.version = version;
 	}
+	
+	public UserBalance(User user, long balance) {
+		super();
+		this.user = user;
+		this.balance = balance;
+	}
 
 
 	public Long getId() {
