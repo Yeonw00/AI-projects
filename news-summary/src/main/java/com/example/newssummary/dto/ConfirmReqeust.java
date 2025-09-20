@@ -1,0 +1,33 @@
+package com.example.newssummary.dto;
+
+public class ConfirmReqeust {
+	private String paymentKey;
+	private String orderId;
+	private long amount;
+
+	public String getPaymentKey() {
+		return paymentKey;
+	}
+
+	public void setPaymentKey(String paymentKey) {
+		this.paymentKey = paymentKey;
+	}
+
+	public String getOrderId() {
+		return orderId;
+	}
+
+	public void setOrderId(String orderId) {
+		this.orderId = orderId;
+	}
+
+	public long getAmount() {
+		return amount;
+	}
+
+	public void setAmount(long amount) {
+		this.amount = amount;
+	}
+	
+	
+}
