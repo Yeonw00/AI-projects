@@ -15,13 +15,11 @@ import com.example.newssummary.dto.ConfirmReqeust;
 import com.example.newssummary.dto.ConfirmResponse;
 import com.example.newssummary.dto.CreateOrderRequest;
 import com.example.newssummary.dto.CreateOrderResponse;
+import com.example.newssummary.dto.TossPaymentResponse;
 import com.example.newssummary.repository.PaymentOrderRepository;
 import com.example.newssummary.service.payment.OrderService;
 import com.example.newssummary.service.payment.TossClient;
 import com.example.newssummary.service.payment.WalletService;
-import com.example.newssummary.service.payment.TossClient.TossConfirmResponse;
-
-import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/api/payments")
@@ -55,8 +53,15 @@ public class PaymentController {
 			return ResponseEntity.badRequest().body("amount mismatch");
 		}
 		
-		TossConfirmResponse res = tossClient.confirm(req.getPaymentKey(), req.getOrderId(), req.getAmount()).block();
-		if (res == null || res.totalAmount() == null || res.totalAmount() != order.getPrice()) {
+		TossPaymentResponse res;
+		try {
+			res= tossClient.confirm(req.getPaymentKey(), req.getOrderId(), req.getAmount());
+		} catch (IllegalStateException ex) {
+			return ResponseEntity.badRequest().body(ex.getMessage());
+		}
+		
+		if (res == null || res.getTotalAmount() == null || 
+				res.getTotalAmount() != order.getPrice()) {
 			return ResponseEntity.badRequest().body("confirm failed or amount mismatch");
 		}
 		
