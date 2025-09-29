@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,6 +18,7 @@ import com.example.newssummary.dto.CreateOrderRequest;
 import com.example.newssummary.dto.CreateOrderResponse;
 import com.example.newssummary.dto.TossPaymentResponse;
 import com.example.newssummary.repository.PaymentOrderRepository;
+import com.example.newssummary.security.CustomUserDetails;
 import com.example.newssummary.service.payment.OrderService;
 import com.example.newssummary.service.payment.TossClient;
 import com.example.newssummary.service.payment.WalletService;
@@ -38,8 +40,9 @@ public class PaymentController {
 	private WalletService walletService;
 	
 	@PostMapping("/orders")
-	public ResponseEntity<?> createOrder(@RequestBody CreateOrderRequest req) {
-		PaymentOrder order = orderService.createPendingOrder(req.getUserId(), req.getProductCode());
+	public ResponseEntity<?> createOrder(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody CreateOrderRequest req) {
+		Long userId = userDetails.getUser().getId();
+		PaymentOrder order = orderService.createPendingOrder(userId, req.getProductCode());
 		return ResponseEntity.ok(new CreateOrderResponse(order.getOrderUid(), order.getPrice()));
 	}
 	
