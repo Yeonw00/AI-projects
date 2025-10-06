@@ -3,7 +3,7 @@ package com.example.newssummary.dto;
 public class ConfirmReqeust {
 	private String paymentKey;
 	private String orderId;
-	private long amount;
+	private Long amount;
 
 	public String getPaymentKey() {
 		return paymentKey;
@@ -21,11 +21,11 @@ public class ConfirmReqeust {
 		this.orderId = orderId;
 	}
 
-	public long getAmount() {
+	public Long getAmount() {
 		return amount;
 	}
 
-	public void setAmount(long amount) {
+	public void setAmount(Long amount) {
 		this.amount = amount;
 	}
 	

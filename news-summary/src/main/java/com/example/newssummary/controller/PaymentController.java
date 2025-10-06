@@ -48,33 +48,56 @@ public class PaymentController {
 	
 	@PostMapping("/confirm")
 	@Transactional
-	public ResponseEntity<?> confirm(@RequestBody ConfirmReqeust req) {
+	public ResponseEntity<?> confirm(@AuthenticationPrincipal CustomUserDetails me, 
+									@RequestBody ConfirmReqeust req) {
+		if (req.getPaymentKey() == null || req.getOrderId() == null || req.getAmount() == null) {
+			return bad("INVALID_PARAM", "paymentKey/orderId/amount is required");
+		}
+		
 		PaymentOrder order = orderRepository.findByOrderUid(req.getOrderId())
 				.orElseThrow(() -> new IllegalArgumentException("order not found"));
 		
-		if(order.getPrice() != req.getAmount()) {
-			return ResponseEntity.badRequest().body("amount mismatch");
+		if (me != null && !order.getUser().getId().equals(me.getUser().getId())) {
+			return bad("FORBIDDEN", "orderowner mismatch");
 		}
+		
+		if ("PAID".equals(order.getStatus())) {
+			return ResponseEntity.ok(new ConfirmResponse("PAID", order.getCoinAmount()));
+		}
+		
+		Long price = order.getPrice();
+		if (price == null) return bad("SERVER_DATA_ERROR", "order price is null");
+		long orderAmount = price.longValue();
+		long reqAmount = req.getAmount().longValue();
+		if (orderAmount != reqAmount) {
+			return bad("AMOUNT_MISMATCH", "server amount and request amount differ");
+		}
+		
 		
 		TossPaymentResponse res;
 		try {
-			res= tossClient.confirm(req.getPaymentKey(), req.getOrderId(), req.getAmount());
+			res= tossClient.confirm(req.getPaymentKey(), req.getOrderId(), reqAmount);
 		} catch (IllegalStateException ex) {
-			return ResponseEntity.badRequest().body(ex.getMessage());
+			return bad("TOSS_CONFIRM_ERROR", ex.getMessage());
 		}
 		
-		if (res == null || res.getTotalAmount() == null || 
-				res.getTotalAmount() != order.getPrice()) {
-			return ResponseEntity.badRequest().body("confirm failed or amount mismatch");
+		Long totalAmount = (res == null) ? null : res.getTotalAmount();
+		if(totalAmount == null ||  totalAmount.longValue() != orderAmount) {
+			return bad("CONFIRM_FAILED", "toss totalAmount mismatch");
 		}
 		
 		order.setStatus("PAID");
 		order.setPaidAt(LocalDateTime.now());
+		// TODO: paymenKey/승인번호/결제수단 저장
 		orderRepository.save(order);
 		
 		walletService.grantChargeCoins(order);
 		
 		return ResponseEntity.ok(new ConfirmResponse("PAID", order.getCoinAmount()));
+	}
+	
+	private ResponseEntity<?> bad(String code, String message) {
+		return ResponseEntity.badRequest().body(java.util.Map.of("code", code, "message", message));
 	}
 	
 }
