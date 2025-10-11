@@ -28,7 +28,7 @@ public class TossClient {
 	public TossPaymentResponse confirm(String paymentKey, String orderId, long amount) {
 		String url = "https://api.tosspayments.com/v1/payments/confirm";
 		
-		System.out.printf("Toss secretKey prefix: {}, len: {}", secretKey.substring(0, 7), secretKey.length());
+		System.out.println("Toss secretKey prefix: " + secretKey.substring(0, 7) +  "len: " + secretKey.length());
 
 		
 		HttpHeaders headers = new HttpHeaders();
