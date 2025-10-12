@@ -1,6 +1,8 @@
 package com.example.newssummary.service.payment;
 
-import java.util.HashMap;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,19 +28,27 @@ public class TossClient {
 	private String secretKey;
 
 	public TossPaymentResponse confirm(String paymentKey, String orderId, long amount) {
+		if (secretKey == null || secretKey.isBlank()) {
+			throw new IllegalStateException("Toss secret key is empty");
+		}
+		
+		System.out.println("paymentKey: " + paymentKey + ", orderId: " + orderId + ", amount: " + amount);
+		
 		String url = "https://api.tosspayments.com/v1/payments/confirm";
 		
-		System.out.println("Toss secretKey prefix: " + secretKey.substring(0, 7) +  "len: " + secretKey.length());
-
-		
 		HttpHeaders headers = new HttpHeaders();
-	    headers.setBasicAuth(secretKey, "");
+		String encodedAuth = Base64.getEncoder().encodeToString((secretKey + ":").getBytes(StandardCharsets.UTF_8));
+		headers.set("Authorization", "Basic " + encodedAuth);
 	    headers.setContentType(MediaType.APPLICATION_JSON);
+	    headers.setAccept(List.of(MediaType.APPLICATION_JSON));
 	    
-	    Map<String, Object> body = new HashMap<>();
-        body.put("paymentKey", paymentKey);
-        body.put("orderId", orderId);
-        body.put("amount", amount);
+	    Map<String, Object> body = Map.of(
+	    		"paymentKey", paymentKey,
+	    		"orderId", orderId,
+	    		"amount", amount
+	    );
+	    
+	    
 
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
 
@@ -48,7 +58,9 @@ public class TossClient {
             return res.getBody();
         } catch (HttpStatusCodeException e) {
             // Toss 에러 바디를 로깅/전달하기 용이
-            throw new IllegalStateException("Toss confirm failed: " + e.getResponseBodyAsString(), e);
+        	String bodyStr = e.getResponseBodyAsString();
+        	int status = e.getRawStatusCode();
+            throw new IllegalStateException("toss confirm failed (" + status + "): " + bodyStr, e);
         }
 	}
 }
