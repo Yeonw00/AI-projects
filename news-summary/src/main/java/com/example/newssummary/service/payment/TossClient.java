@@ -39,6 +39,7 @@ public class TossClient {
 		HttpHeaders headers = new HttpHeaders();
 		String encodedAuth = Base64.getEncoder().encodeToString((secretKey + ":").getBytes(StandardCharsets.UTF_8));
 		headers.set("Authorization", "Basic " + encodedAuth);
+		
 	    headers.setContentType(MediaType.APPLICATION_JSON);
 	    headers.setAccept(List.of(MediaType.APPLICATION_JSON));
 	    
