@@ -3,6 +3,7 @@ package com.example.newssummary.controller;
 import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.newssummary.dao.PaymentOrder;
-import com.example.newssummary.dto.ConfirmReqeust;
+import com.example.newssummary.dto.ConfirmRequest;
 import com.example.newssummary.dto.ConfirmResponse;
 import com.example.newssummary.dto.CreateOrderRequest;
 import com.example.newssummary.dto.CreateOrderResponse;
@@ -49,7 +50,7 @@ public class PaymentController {
 	@PostMapping("/confirm")
 	@Transactional
 	public ResponseEntity<?> confirm(@AuthenticationPrincipal CustomUserDetails me, 
-									@RequestBody ConfirmReqeust req) {
+									@RequestBody ConfirmRequest req) {
 		if (req.getPaymentKey() == null || req.getOrderId() == null || req.getAmount() == null) {
 			return bad("INVALID_PARAM", "paymentKey/orderId/amount is required");
 		}
@@ -58,7 +59,7 @@ public class PaymentController {
 				.orElseThrow(() -> new IllegalArgumentException("order not found"));
 		
 		if (me != null && !order.getUser().getId().equals(me.getUser().getId())) {
-			return bad("FORBIDDEN", "orderowner mismatch");
+			return forbidden("FORBIDDEN", "orderowner mismatch");
 		}
 		
 		if ("PAID".equals(order.getStatus())) {
@@ -100,4 +101,8 @@ public class PaymentController {
 		return ResponseEntity.badRequest().body(java.util.Map.of("code", code, "message", message));
 	}
 	
+	private ResponseEntity<?> forbidden(String code, String message) {
+		return ResponseEntity.status(HttpStatus.FORBIDDEN)
+				.body(java.util.Map.of("code", code, "message", message));
+	}
 }

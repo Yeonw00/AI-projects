@@ -1,6 +1,6 @@
 package com.example.newssummary.dto;
 
-public class ConfirmReqeust {
+public class ConfirmRequest {
 	private String paymentKey;
 	private String orderId;
 	private Long amount;

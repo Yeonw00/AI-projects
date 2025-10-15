@@ -1,6 +1,5 @@
 package com.example.newssummary.config;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import org.springframework.context.annotation.Bean;
@@ -11,20 +10,15 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
-import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
-import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.util.UriComponentsBuilder;
-import org.springframework.web.util.UriUtils;
 
 import com.example.newssummary.security.JwtAuthenticationFilter;
 
-import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
 @EnableWebSecurity
@@ -40,9 +34,22 @@ public class SecurityConfig {
 						"/api/auth/**", 
 						"/oauth2/**"
 				).permitAll()
+				.requestMatchers("/api/payments/**", "/api/wallet/**").authenticated()
 				.anyRequest().authenticated()
 			)
-			.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+			.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+			.exceptionHandling(e -> e
+					.authenticationEntryPoint((req, res, ex) -> {
+						res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+						res.setContentType("application/json;charset=UTF-8");
+						res.getWriter().write("{\"code\":\"UNAUTHORIZED\",\"message\":\"로그인이 필요합니다.\"}");
+					})
+					.accessDeniedHandler((req, res, ex) -> {
+						res.setStatus(HttpServletResponse.SC_FORBIDDEN);
+						res.setContentType("application/json;charset=UTF-8");
+						res.getWriter().write("{\"code\":\"FORBIDDEN\",\"message\":\"접근 권한이 없습니다.\"}");
+					})
+			);
 		return http.build();	
 	}
 	
