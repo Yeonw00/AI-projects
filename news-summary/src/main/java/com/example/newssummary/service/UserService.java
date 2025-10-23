@@ -43,7 +43,7 @@ public class UserService {
 		
 		UserBalance balance = new UserBalance();
 		balance.setUser(user);
-		balance.setBalance(300);
+		balance.setBalance(300L);
 		userBalanceRepository.save(balance);
 	}
 	
@@ -84,7 +84,7 @@ public class UserService {
 			
 			UserBalance balance = new UserBalance();
 			balance.setUser(user);
-			balance.setBalance(300);
+			balance.setBalance(300L);
 			userBalanceRepository.save(balance);
 		}
 		
@@ -138,7 +138,7 @@ public class UserService {
 			
 			UserBalance balance = new UserBalance();
 			balance.setUser(user);
-			balance.setBalance(300);
+			balance.setBalance(300L);
 			userBalanceRepository.save(balance);
 		}
 		
@@ -174,7 +174,7 @@ public class UserService {
 			
 			UserBalance balance = new UserBalance();
 			balance.setUser(user);
-			balance.setBalance(300);
+			balance.setBalance(300L);
 			userBalanceRepository.save(balance);
 		}
 		

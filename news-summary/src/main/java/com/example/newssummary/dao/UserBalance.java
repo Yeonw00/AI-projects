@@ -23,10 +23,10 @@ public class UserBalance {
 	private User user;
 	
 	@Column(nullable = false)
-	private long balance;
+	private Long balance = 0L;
 	
 	@Version
-	private long version;
+	private Long version;
 	
 	
 	public UserBalance() {}
@@ -54,11 +54,11 @@ public class UserBalance {
 		this.id = id;
 	}
 	
-	public long getBalance() {
+	public Long getBalance() {
 		return balance;
 	}
 	
-	public void setBalance(long balance) {
+	public void setBalance(Long balance) {
 		this.balance = balance;
 	}
 	
@@ -66,7 +66,7 @@ public class UserBalance {
 		return version;
 	}
 	
-	public void setVersion(long version) {
+	public void setVersion(Long version) {
 		this.version = version;
 	}
 	

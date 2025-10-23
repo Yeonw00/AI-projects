@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -28,8 +30,9 @@ public class CoinLedger {
 	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
 	
+	@Enumerated(EnumType.STRING)
 	@Column(length = 32, nullable = false)
-	private String type; // SIGNUP_BONUS, CHARGE, CONSUME_SUMMARY 등
+	private LedgerType type; // SIGNUP_BONUS, CHARGE, CONSUME_SUMMARY 등
 	
 	private long amount;
 	private long balnaceAfter;
@@ -41,7 +44,7 @@ public class CoinLedger {
 
 	public CoinLedger() {}
 	
-	public CoinLedger(Long id, User user, String type, long amount, long balnaceAfter, String refKey,
+	public CoinLedger(Long id, User user, LedgerType type, long amount, long balnaceAfter, String refKey,
 			LocalDateTime createdAt) {
 		super();
 		this.id = id;
@@ -53,7 +56,7 @@ public class CoinLedger {
 		this.createdAt = createdAt;
 	}
 	
-	public CoinLedger(User user, String type, long amount, long balnaceAfter, String refKey,
+	public CoinLedger(User user, LedgerType type, long amount, long balnaceAfter, String refKey,
 			LocalDateTime createdAt) {
 		super();
 		this.user = user;
@@ -80,11 +83,11 @@ public class CoinLedger {
 		this.user = user;
 	}
 
-	public String getType() {
+	public LedgerType getType() {
 		return type;
 	}
 
-	public void setType(String type) {
+	public void setType(LedgerType type) {
 		this.type = type;
 	}
 

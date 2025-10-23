@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.newssummary.dao.CoinLedger;
+import com.example.newssummary.dao.LedgerType;
 import com.example.newssummary.dao.PaymentOrder;
 import com.example.newssummary.dao.User;
 import com.example.newssummary.dao.UserBalance;
@@ -36,14 +37,14 @@ public class WalletService {
 		Long userId = user.getId();
 		
 		UserBalance ub = balanceRepository.findById(userId)
-				.orElse(new UserBalance(user, 0));
+				.orElse(new UserBalance(user, 0L));
 		
 		ub.increse(order.getCoinAmount());
 		balanceRepository.save(ub);
 		
 		ledgerRepository.save(new CoinLedger(
 					user, 
-					"CAHRGE",
+					LedgerType.CHARGE,
 					order.getCoinAmount(),
 					ub.getBalance(),
 					order.getOrderUid(),
