@@ -18,7 +18,8 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "coin_ledger", indexes = {
-		@Index(name = "idx_ledger_user_created", columnList = "user_id, createdAt")
+		@Index(name = "idx_ledger_user_created", columnList = "user_id, createdAt"),
+		@Index(name = "idx_ledger_order_id", columnList = "orderId")
 })
 public class CoinLedger {
 	
@@ -34,36 +35,45 @@ public class CoinLedger {
 	@Column(length = 32, nullable = false)
 	private LedgerType type; // SIGNUP_BONUS, CHARGE, CONSUME_SUMMARY 등
 	
+	@Column(nullable = false)
 	private long amount;
-	private long balnaceAfter;
+	
+	@Column(name = "balance_after", nullable = false)
+	private long balanceAfter;
 	
 	@Column(length = 128)
-	private String refKey; // 관련 주문 ID, 요약ID 등
+	private String orderId; // 업무 연계 키(결제주문ID, 요약작업ID 등)
 	
 	private LocalDateTime createdAt;
+	
+	@Column(length = 255)
+	private String description; // UI/관리자용 메모
+	
+	@Column(length = 64, unique = true)
+    private String requestId;     // 멱등키(결제/웹훅 등), NULL 허용
 
 	public CoinLedger() {}
 	
-	public CoinLedger(Long id, User user, LedgerType type, long amount, long balnaceAfter, String refKey,
+	public CoinLedger(Long id, User user, LedgerType type, long amount, long balanceAfter, String orderId,
 			LocalDateTime createdAt) {
 		super();
 		this.id = id;
 		this.user = user;
 		this.type = type;
 		this.amount = amount;
-		this.balnaceAfter = balnaceAfter;
-		this.refKey = refKey;
+		this.balanceAfter = balanceAfter;
+		this.orderId = orderId;
 		this.createdAt = createdAt;
 	}
 	
-	public CoinLedger(User user, LedgerType type, long amount, long balnaceAfter, String refKey,
+	public CoinLedger(User user, LedgerType type, long amount, long balanceAfter, String orderId,
 			LocalDateTime createdAt) {
 		super();
 		this.user = user;
 		this.type = type;
 		this.amount = amount;
-		this.balnaceAfter = balnaceAfter;
-		this.refKey = refKey;
+		this.balanceAfter = balanceAfter;
+		this.orderId = orderId;
 		this.createdAt = createdAt;
 	}
 
@@ -99,20 +109,20 @@ public class CoinLedger {
 		this.amount = amount;
 	}
 
-	public long getBalnaceAfter() {
-		return balnaceAfter;
+	public long getBalanceAfter() {
+		return balanceAfter;
 	}
 
-	public void setBalnaceAfter(long balnaceAfter) {
-		this.balnaceAfter = balnaceAfter;
+	public void setBalanceAfter(long balanceAfter) {
+		this.balanceAfter = balanceAfter;
 	}
 
-	public String getRefKey() {
-		return refKey;
+	public String getOrderId() {
+		return orderId;
 	}
 
-	public void setRefKey(String refKey) {
-		this.refKey = refKey;
+	public void setOrderId(String orderId) {
+		this.orderId = orderId;
 	}
 
 	public LocalDateTime getCreatedAt() {
@@ -123,7 +133,22 @@ public class CoinLedger {
 		this.createdAt = createdAt;
 	}
 	
-	
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public String getRequestId() {
+		return requestId;
+	}
+
+	public void setRequestId(String requestId) {
+		this.requestId = requestId;
+	}
+
 	@PrePersist
 	public void onCreate() {
 		if (createdAt == null) createdAt = LocalDateTime.now();
