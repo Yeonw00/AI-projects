@@ -7,11 +7,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.newssummary.dao.CoinLedger;
 import com.example.newssummary.dao.PaymentOrder;
 import com.example.newssummary.dto.ConfirmRequest;
 import com.example.newssummary.dto.ConfirmResponse;
@@ -21,6 +24,7 @@ import com.example.newssummary.dto.TossPaymentResponse;
 import com.example.newssummary.repository.PaymentOrderRepository;
 import com.example.newssummary.security.CustomUserDetails;
 import com.example.newssummary.service.payment.OrderService;
+import com.example.newssummary.service.payment.RefundService;
 import com.example.newssummary.service.payment.TossClient;
 import com.example.newssummary.service.payment.WalletService;
 
@@ -39,6 +43,9 @@ public class PaymentController {
 	
 	@Autowired
 	private WalletService walletService;
+	
+	@Autowired
+	private RefundService refundService;
 	
 	@PostMapping("/orders")
 	public ResponseEntity<?> createOrder(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody CreateOrderRequest req) {
@@ -104,5 +111,15 @@ public class PaymentController {
 	private ResponseEntity<?> forbidden(String code, String message) {
 		return ResponseEntity.status(HttpStatus.FORBIDDEN)
 				.body(java.util.Map.of("code", code, "message", message));
+	}
+	
+	@PostMapping("/refund/{orderUid}")
+	@Transactional
+	public ResponseEntity<?> refundByOrderUid(@PathVariable String orderUid,
+												@RequestParam(required = false) Long coins,
+												@RequestParam(required = false) String requestId,
+												@RequestParam(required = false) String reason) {
+		CoinLedger ledger = refundService.refundByOrderUid(orderUid, coins, requestId, reason);
+		return ResponseEntity.ok(ledger.getId());
 	}
 }
