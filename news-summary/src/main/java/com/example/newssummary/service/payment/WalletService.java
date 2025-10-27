@@ -26,7 +26,8 @@ public class WalletService {
 	private CoinLedgerRepository ledgerRepository;
 	
 	@Autowired
-	private PaymentOrderRepository orderRepository;
+	private CoinLedgerService coinLedgerService;
+	
 	
 	@Transactional
 	public void grantChargeCoins(PaymentOrder order) {
@@ -49,5 +50,16 @@ public class WalletService {
 					ub.getBalance(),
 					order.getOrderUid(),
 					LocalDateTime.now()));
+		
+		
+		coinLedgerService.createEntry(
+				userId,
+				LedgerType.CHARGE,
+				order.getCoinAmount(),
+				"코인 충전 (" + order.getProductCode() + ")", // description
+				order.getOrderUid(),   // 멱등키 (중복 방지)
+				String.valueOf(order.getId())     // 결제 주문 ID
+		);
 	}
+	
 }

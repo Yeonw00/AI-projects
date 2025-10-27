@@ -10,12 +10,14 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.example.newssummary.dao.LedgerType;
 import com.example.newssummary.dao.User;
 import com.example.newssummary.dao.UserBalance;
 import com.example.newssummary.dto.SignupRequest;
 import com.example.newssummary.dto.UserLoginRequest;
 import com.example.newssummary.repository.UserBalanceRepository;
 import com.example.newssummary.repository.UserRepository;
+import com.example.newssummary.service.payment.CoinLedgerService;
 
 import jakarta.transaction.Transactional;
 
@@ -29,6 +31,9 @@ public class UserService {
 	
 	@Autowired
 	private PasswordEncoder passwordEncoder;
+	
+	@Autowired
+	private CoinLedgerService coinLedgerService;
 	
 	@Transactional
 	public void singup(SignupRequest request) {
@@ -45,6 +50,15 @@ public class UserService {
 		balance.setUser(user);
 		balance.setBalance(300L);
 		userBalanceRepository.save(balance);
+		
+		coinLedgerService.createEntry(
+				user.getId(), 
+				LedgerType.CHARGE, 
+				300,
+				"가입 보너스", 
+				"SIGNUP-" + user.getId(), 
+				null
+		);
 	}
 	
 	public User login(UserLoginRequest request) {

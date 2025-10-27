@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.example.newssummary.dao.LedgerType;
 import com.example.newssummary.dao.SavedSummary;
 import com.example.newssummary.dao.SummaryRequest;
 import com.example.newssummary.dao.User;
@@ -30,6 +31,7 @@ import com.example.newssummary.repository.SavedSummaryRepository;
 import com.example.newssummary.repository.SummaryRequestRepository;
 import com.example.newssummary.security.CustomUserDetails;
 import com.example.newssummary.service.SummaryService;
+import com.example.newssummary.service.payment.CoinLedgerService;
 
 import jakarta.transaction.Transactional;
 
@@ -46,6 +48,9 @@ public class SummaryController {
 	
 	@Autowired
 	private SavedSummaryRepository savedSummaryRepository;
+	
+	@Autowired
+	private CoinLedgerService coinLedgerService;
 	
 	@PostMapping("/huggingFace")
 	public ResponseEntity<String> summarizeHuggingFace(@RequestBody SummaryRequestDTO request) {
@@ -98,7 +103,18 @@ public class SummaryController {
 			
 			summaryRequestRepository.save(summaryRequest);
 			
-			// 2. SavedSummary 자동 저장
+			// 3.코인 차감 + 레저 기록(USE)
+			final long COST_COINS = 100L;
+			coinLedgerService.createEntry(
+					user.getId(), 
+					LedgerType.USE, 
+					COST_COINS, 
+					"요약 사용", 
+					"SUMMARY-" + summaryRequest.getId(), 
+					String.valueOf(summaryRequest.getId())
+			);
+			
+			// 4. SavedSummary 자동 저장
 			summaryService.createSavedSummary(user, summaryRequest);
 			
 			return ResponseEntity.ok(summary);
