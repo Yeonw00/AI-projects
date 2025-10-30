@@ -29,6 +29,11 @@ public class CoinLedgerService {
 
 	@Autowired
 	private UserBalanceRepository balanceRepository;
+	
+	public CoinLedgerService(CoinLedgerRepository ledgerRepository, UserBalanceRepository balanceRepository) {
+        this.ledgerRepository = ledgerRepository;
+        this.balanceRepository = balanceRepository;
+    }
 
 	@Transactional
 	public CoinLedger createEntry(Long userId,
