@@ -38,4 +38,11 @@ public class GlobalExceptionHandler {
 		body.put("message", ex.getMessage());
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
 	}
+	
+	@ExceptionHandler(InsufficientCoinForRefundException.class)
+	public ResponseEntity<?> handleRefundException(InsufficientCoinForRefundException ex) {
+		return ResponseEntity
+				.badRequest()
+				.body(Map.of("error", "INSUFFICIENT_COIN", "message", ex.getMessage()));
+	}
 }

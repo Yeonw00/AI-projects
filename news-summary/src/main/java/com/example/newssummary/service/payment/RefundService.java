@@ -10,6 +10,7 @@ import com.example.newssummary.dao.LedgerType;
 import com.example.newssummary.dao.OrderStatus;
 import com.example.newssummary.dao.PaymentOrder;
 import com.example.newssummary.dao.UserBalance;
+import com.example.newssummary.exception.InsufficientCoinForRefundException;
 import com.example.newssummary.repository.PaymentOrderRepository;
 import com.example.newssummary.repository.UserBalanceRepository;
 
