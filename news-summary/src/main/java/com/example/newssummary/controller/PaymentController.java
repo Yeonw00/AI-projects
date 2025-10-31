@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.newssummary.dao.CoinLedger;
+import com.example.newssummary.dao.OrderStatus;
 import com.example.newssummary.dao.PaymentOrder;
 import com.example.newssummary.dto.ConfirmRequest;
 import com.example.newssummary.dto.ConfirmResponse;
@@ -94,7 +95,7 @@ public class PaymentController {
 			return bad("CONFIRM_FAILED", "toss totalAmount mismatch");
 		}
 		
-		order.setStatus("PAID");
+		order.setStatus(OrderStatus.PAID);
 		order.setPaidAt(LocalDateTime.now());
 		// TODO: paymenKey/승인번호/결제수단 저장
 		orderRepository.save(order);
@@ -119,7 +120,7 @@ public class PaymentController {
 												@RequestParam(required = false) Long coins,
 												@RequestParam(required = false) String requestId,
 												@RequestParam(required = false) String reason) {
-		CoinLedger ledger = refundService.refundByOrderUid(orderUid, coins, requestId, reason);
+		CoinLedger ledger = refundService.refundByOrderUid(orderUid, requestId);
 		return ResponseEntity.ok(ledger.getId());
 	}
 }

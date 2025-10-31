@@ -7,69 +7,70 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.newssummary.dao.CoinLedger;
 import com.example.newssummary.dao.LedgerType;
+import com.example.newssummary.dao.OrderStatus;
 import com.example.newssummary.dao.PaymentOrder;
+import com.example.newssummary.dao.UserBalance;
 import com.example.newssummary.repository.PaymentOrderRepository;
+import com.example.newssummary.repository.UserBalanceRepository;
 
 @Service
 public class RefundService {
 	
 	@Autowired
-	private PaymentOrderRepository paymentOrderRepository;
+	private PaymentOrderRepository orderRepository;
+	
+	@Autowired
+	private UserBalanceRepository balanceRepository;
 	
 	@Autowired
 	private CoinLedgerService coinLedgerService;
 	
 	
 	/**
-     * 주문 UID 기준 환불 (부분/전체)
+     * 주문 UID 기준 환불 (전체)
      * @param orderUid   결제 고유 UID
-     * @param coins      환불 코인 수량 (null 또는 0 이하 => 전체 환불로 간주)
      * @param requestId  멱등키(선택). 없으면 내부에서 생성
      * @param reason     로그용 설명(선택)
      */
 	@Transactional
-	public CoinLedger refundByOrderUid(String orderUid,
-										@Nullable Long coins,
-										@Nullable String requestId,
-										@Nullable String reason) {
-		PaymentOrder order = paymentOrderRepository.findByOrderUid(orderUid)
+	public CoinLedger refundByOrderUid(String orderUid, String requestId) {
+		PaymentOrder order = orderRepository.findByOrderUid(orderUid)
 				.orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderUid));
 		
-		if (!"PAID".equals(order.getStatus())) {
+		if(order.getStatus() == OrderStatus.REFUNDED) {
+			throw new IllegalStateException("Order is already refunded=" + order.getStatus());
+		}
+		
+		if (OrderStatus.PAID != order.getStatus()) {
 			throw new IllegalStateException("Order is not PAID. current=" + order.getStatus());
 		}
 		
-		long refundable = order.getCoinAmount();
-		long refundAmount = (coins == null || coins <=0) ? refundable : coins;
+		Long userId = order.getUser().getId();
+		long coinToTakeBack = order.getCoinAmount();
+		long refundMoney = order.getPrice();
 		
-		if (refundAmount <= 0) {
-			throw new IllegalArgumentException("Refund amount must be positive");
+		UserBalance ub = balanceRepository.findById(userId)
+				.orElseThrow(() -> new IllegalStateException("balance not found"));
+		if(ub.getBalance() < coinToTakeBack) {
+			throw new InsufficientCoinForRefundException(
+					"Not enough coins to refund this order as-is");
 		}
 		
-		if (refundAmount > refundable) {
-			throw new IllegalArgumentException("Refund amount exceeds paid coins. paid=" + refundable + "req=" + refundAmount);
-		}
-		
-		String desc = (reason != null && !reason.isBlank()) ? reason : "결제 환불";
-		String rid = (requestId != null && !requestId.isBlank())
-				? requestId
-				: "REFUND-" + orderUid + "-" + refundAmount;
-		
-		// 코인 활불 + 레저 기록 (잔액 갱신 포함)
+		// 1 코인 회수
 		CoinLedger ledger = coinLedgerService.createEntry(
-				order.getUser().getId(), 
+				userId, 
 				LedgerType.REFUND, 
-				refundAmount, 
-				desc, 
-				rid, 
-				String.valueOf(order.getId())
+				coinToTakeBack, 
+				"refund for order " + orderUid, 
+				requestId, 
+				orderUid
 		);
 		
-		// 전체 환불이면 상태 갱신
-		if (refundAmount == refundable) {
-			order.setStatus("REFUNDED");
-			paymentOrderRepository.save(order);
-		}
+		// 2 외부 PG에 전액 환불 요청 (여기서는 생략/성공 가정)
+		
+		// 3 주문 상태 전이
+		order.setStatus(OrderStatus.REFUNDED);
+		orderRepository.save(order);
 		
 		return ledger;
 	}
@@ -78,13 +79,10 @@ public class RefundService {
      * 주문 PK 기준 환불 (부분/전체)
      */
 	@Transactional
-	public CoinLedger refundByOrderId(Long orderId,
-										@Nullable Long coins,
-										@Nullable String requestId,
-										@Nullable String reason) {
-		PaymentOrder order = paymentOrderRepository.findById(orderId)
+	public CoinLedger refundByOrderId(Long orderId, @Nullable String requestId) {
+		PaymentOrder order = orderRepository.findById(orderId)
 				.orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
-		return refundByOrderUid(order.getOrderUid(), coins, requestId, reason);
+		return refundByOrderUid(order.getOrderUid(), requestId);
 	}
 	
 }

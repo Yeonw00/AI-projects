@@ -35,14 +35,14 @@ public class PaymentOrder {
 	private long price;
 	
 	@Column(length = 16, nullable = false)
-	private String status; // PENDING, PAID, FAILED, CANCELD
+	private OrderStatus status; // PENDING, PAID, FAILED, CANCELD
 	
 	private LocalDateTime createdAt;
 	private LocalDateTime paidAt;
 	
 	
 	public PaymentOrder(Long id, String orderUid, User user, String productCode, long coinAmount, long price,
-			String status, LocalDateTime createdAt, LocalDateTime paidAt) {
+			OrderStatus status, LocalDateTime createdAt, LocalDateTime paidAt) {
 		super();
 		this.id = id;
 		this.orderUid = orderUid;
@@ -118,12 +118,12 @@ public class PaymentOrder {
 	}
 
 
-	public String getStatus() {
+	public OrderStatus getStatus() {
 		return status;
 	}
 
 
-	public void setStatus(String status) {
+	public void setStatus(OrderStatus status) {
 		this.status = status;
 	}
 

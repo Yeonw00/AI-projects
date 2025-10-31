@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.example.newssummary.dao.OrderStatus;
 import com.example.newssummary.dao.PaymentOrder;
 import com.example.newssummary.dao.User;
 import com.example.newssummary.repository.PaymentOrderRepository;
@@ -42,7 +43,7 @@ public class OrderService {
 		order.setProductCode(productCode);
 		order.setCoinAmount(item.coin());
 		order.setPrice(item.price());
-		order.setStatus("PENDING");
+		order.setStatus(OrderStatus.PENDING);
 		
 		return orderRepository.save(order);
 	}
