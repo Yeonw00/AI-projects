@@ -8,11 +8,12 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.stereotype.Component;
 
 import com.example.newssummary.dao.LedgerType;
 import com.example.newssummary.dto.LedgerEntryResponse;
-import com.example.newssummary.dto.LedgerPageResponse;
 
+@Component
 public class CoinLedgerExcelExporter {
 	public void export(List<LedgerEntryResponse> rows, OutputStream os) throws IOException {
 		try (Workbook wb = new XSSFWorkbook()) {
