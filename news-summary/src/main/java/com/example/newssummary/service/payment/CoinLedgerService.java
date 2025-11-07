@@ -134,4 +134,22 @@ public class CoinLedgerService {
 
 		return ledgerPageResponse;
 	}
+	
+	public List<LedgerEntryResponse> getUserLedgerAll(Long userId,
+            @Nullable LedgerType type) {
+	// 페이징 없이 전부 조회하는 쿼리
+	List<CoinLedger> entities = ledgerRepository.findByUserIdAndTypeOrderByCreatedAtDesc(userId, type);
+	return entities
+            .stream()
+            .map(l -> new LedgerEntryResponse(
+                    l.getId(),
+                    l.getType(),
+                    l.getAmount(),
+                    l.getBalanceAfter(),
+                    l.getDescription(),
+                    l.getOrderId(),
+                    l.getCreatedAt()
+            ))
+            .toList();
+	}
 }

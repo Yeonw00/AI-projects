@@ -1,5 +1,6 @@
 package com.example.newssummary.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -13,4 +14,5 @@ public interface CoinLedgerRepository extends JpaRepository<CoinLedger, Long> {
     Page<CoinLedger> findByUserIdAndType(Long userId, LedgerType type, Pageable pageable);
     Page<CoinLedger> findByUserId(Long userId, Pageable pageable);
     Optional<CoinLedger> findByRequestId(String requestId); // 멱등 처리용
+    List<CoinLedger> findByUserIdAndTypeOrderByCreatedAtDesc(Long userId, LedgerType type);
 }

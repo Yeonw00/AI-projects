@@ -1,6 +1,11 @@
 package com.example.newssummary.controller;
 
+import java.io.IOException;
+import java.time.LocalDate;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -15,10 +20,14 @@ import org.springframework.web.server.ResponseStatusException;
 import com.example.newssummary.dao.LedgerType;
 import com.example.newssummary.dao.UserBalance;
 import com.example.newssummary.dto.BalanceResponse;
+import com.example.newssummary.dto.LedgerEntryResponse;
 import com.example.newssummary.dto.LedgerPageResponse;
 import com.example.newssummary.repository.UserBalanceRepository;
 import com.example.newssummary.security.CustomUserDetails;
+import com.example.newssummary.service.payment.CoinLedgerExcelExporter;
 import com.example.newssummary.service.payment.CoinLedgerService;
+
+import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("/api/wallet")
@@ -29,6 +38,9 @@ public class WalletController {
 	
 	@Autowired
 	private CoinLedgerService coinLedgerService;
+	
+	@Autowired
+	private CoinLedgerExcelExporter excelExporter;
 	
 	@GetMapping("/me")
 	public ResponseEntity<?> getBalance(@AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -56,4 +68,29 @@ public class WalletController {
 		}
 		return d.getUser().getId();
 	}
+	
+	@GetMapping("/api/coins/ledger/export")
+	public void exportLedger(
+			@AuthenticationPrincipal CustomUserDetails user,
+			@RequestParam(required = false) LedgerType type,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+			@RequestParam(defaultValue = "EXCEL") String format,
+			HttpServletResponse response
+	) throws IOException {
+		Long userId = user.getUser().getId();
+		List<LedgerEntryResponse> rows = coinLedgerService.getUserLedgerAll(userId, type);
+		
+		if ("PDF".equalsIgnoreCase(format)) {
+			response.setContentType("application/pdf");
+			response.setHeader("Content-Disposition", "attachment; filename=\"coin-ledger.pdf\"");
+//			pdfExporter.export(rows, response.getOutputStream());
+		} else {
+			response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+			response.setHeader("Content-Disposition", "attachment; filename=\"coin-ledger.xlsx\"");
+			excelExporter.export(rows, response.getOutputStream());
+		}
+	}
 }
+
+
