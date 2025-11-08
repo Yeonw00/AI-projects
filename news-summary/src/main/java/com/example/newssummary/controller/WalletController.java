@@ -25,6 +25,7 @@ import com.example.newssummary.dto.LedgerPageResponse;
 import com.example.newssummary.repository.UserBalanceRepository;
 import com.example.newssummary.security.CustomUserDetails;
 import com.example.newssummary.service.payment.CoinLedgerExcelExporter;
+import com.example.newssummary.service.payment.CoinLedgerPdfExporter;
 import com.example.newssummary.service.payment.CoinLedgerService;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -41,6 +42,9 @@ public class WalletController {
 	
 	@Autowired
 	private CoinLedgerExcelExporter excelExporter;
+	
+	@Autowired
+	private CoinLedgerPdfExporter pdfExporter;
 	
 	@GetMapping("/me")
 	public ResponseEntity<?> getBalance(@AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -84,7 +88,7 @@ public class WalletController {
 		if ("PDF".equalsIgnoreCase(format)) {
 			response.setContentType("application/pdf");
 			response.setHeader("Content-Disposition", "attachment; filename=\"coin-ledger.pdf\"");
-//			pdfExporter.export(rows, response.getOutputStream());
+			pdfExporter.export(rows, response.getOutputStream());
 		} else {
 			response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 			response.setHeader("Content-Disposition", "attachment; filename=\"coin-ledger.xlsx\"");
