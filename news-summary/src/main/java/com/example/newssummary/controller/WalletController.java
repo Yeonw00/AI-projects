@@ -73,7 +73,7 @@ public class WalletController {
 		return d.getUser().getId();
 	}
 	
-	@GetMapping("/api/coins/ledger/export")
+	@GetMapping("/ledger/export")
 	public void exportLedger(
 			@AuthenticationPrincipal CustomUserDetails user,
 			@RequestParam(required = false) LedgerType type,
