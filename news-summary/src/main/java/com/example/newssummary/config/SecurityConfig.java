@@ -31,10 +31,15 @@ public class SecurityConfig {
 			.cors(Customizer.withDefaults())
 			.authorizeHttpRequests(auth -> auth
 				.requestMatchers(
-						"/api/auth/**", 
+						"/api/auth/login",
+			            "/api/auth/signup",
+			            "/api/auth/refresh",
+			            "/api/auth/google/**",
+			            "/api/auth/naver/**",
+			            "/api/auth/kakao/**",
 						"/oauth2/**"
 				).permitAll()
-				.requestMatchers("/api/payments/**", "/api/wallet/**").authenticated()
+				.requestMatchers("/api/auth/check","/api/payments/**", "/api/wallet/**").authenticated()
 				.anyRequest().authenticated()
 			)
 			.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)

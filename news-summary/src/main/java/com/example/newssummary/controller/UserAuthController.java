@@ -95,11 +95,27 @@ public class UserAuthController {
 	}
 	
 	@GetMapping("/check")
-	public ResponseEntity<Map<String, Object>> checkLogin(
+	public ResponseEntity<Map<String, Object>> checkLogin( 
 			@AuthenticationPrincipal CustomUserDetails userDetails) {
-	    Object user = userDetails.getUser();
-	    Map<String, Object> result = new HashMap<>();
-	    result.put("loggedIn", user != null);
+		
+		Map<String, Object> result = new HashMap<>();
+		
+		if(userDetails == null || userDetails.getUser() == null) {
+			result.put("loggedIn", false);
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+					.body(Map.of(
+							"code", "UNAUTHORIZED", 
+							"message","로그인이 필요합니다."
+					));
+		}
+		
+		var user = userDetails.getUser();
+	    result.put("loggedIn", true);
+	    result.put("user", Map.of(
+	    		"id", user.getId(), 
+	    		"email", user.getEmail(), 
+	    		"username", user.getUsername()
+	    ));
 	    return ResponseEntity.ok(result);
 	}
 	

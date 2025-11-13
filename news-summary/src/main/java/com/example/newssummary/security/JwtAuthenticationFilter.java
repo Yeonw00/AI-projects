@@ -27,8 +27,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
 	
 	private static final AntPathMatcher matcher = new AntPathMatcher();
 	private static final List<String> WHITELIST = List.of(
-		"/api/auth/**", "/oauth2/**",
-		"/login/oauth2/**" , "/login", "/error"
+		"/api/auth/login",
+		"/api/auth/signup",
+		"/api/auth/refresh",
+		"/api/auth/google/**",
+		"/api/auth/naver/**",
+		"/api/auth/kakao/**", 
+		"/oauth2/**",
+		"/login/oauth2/**" , 
+		"/login", 
+		"/error"
 	);
 	
 	@Override
