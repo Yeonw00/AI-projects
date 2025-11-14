@@ -59,21 +59,32 @@ public class PaymentController {
 	@Transactional
 	public ResponseEntity<?> confirm(@AuthenticationPrincipal CustomUserDetails me, 
 									@RequestBody ConfirmRequest req) {
+		// 1. 기본 파라미터 검증
 		if (req.getPaymentKey() == null || req.getOrderId() == null || req.getAmount() == null) {
 			return bad("INVALID_PARAM", "paymentKey/orderId/amount is required");
 		}
 		
+		// 2. 주문 조회
 		PaymentOrder order = orderRepository.findByOrderUid(req.getOrderId())
 				.orElseThrow(() -> new IllegalArgumentException("order not found"));
 		
+		
+		// 3. 주문 소유자 검증
 		if (me != null && !order.getUser().getId().equals(me.getUser().getId())) {
 			return forbidden("FORBIDDEN", "orderowner mismatch");
 		}
 		
-		if ("PAID".equals(order.getStatus())) {
+		// 4. 멱등 처리: 이미 결제 완료된 주문
+		if (OrderStatus.PAID.equals(order.getStatus())) {
 			return ResponseEntity.ok(new ConfirmResponse("PAID", order.getCoinAmount()));
 		}
 		
+		// 5. 승인 가능한 상태(PENDING)인지 확인
+		if (order.getStatus() != OrderStatus.PENDING) {
+			return bad("INVALID_STATE", "order must be PENDING to confrim. current=" + order.getStatus());
+		}
+		
+		// 6. 금액 검증
 		Long price = order.getPrice();
 		if (price == null) return bad("SERVER_DATA_ERROR", "order price is null");
 		long orderAmount = price.longValue();
@@ -82,7 +93,7 @@ public class PaymentController {
 			return bad("AMOUNT_MISMATCH", "server amount and request amount differ");
 		}
 		
-		
+		// 7. Toss 결제 승인 요청 (여기서 PENDING -> PAID)
 		TossPaymentResponse res;
 		try {
 			res= tossClient.confirm(req.getPaymentKey(), req.getOrderId(), reqAmount);
@@ -90,18 +101,22 @@ public class PaymentController {
 			return bad("TOSS_CONFIRM_ERROR", ex.getMessage());
 		}
 		
+		// 8. Toss 응답 검증
 		Long totalAmount = (res == null) ? null : res.getTotalAmount();
 		if(totalAmount == null ||  totalAmount.longValue() != orderAmount) {
 			return bad("CONFIRM_FAILED", "toss totalAmount mismatch");
 		}
 		
+		// 9. 결제 완료 처리
 		order.setStatus(OrderStatus.PAID);
 		order.setPaidAt(LocalDateTime.now());
 		// TODO: paymenKey/승인번호/결제수단 저장
 		orderRepository.save(order);
 		
+		// 10. 코인 지급
 		walletService.grantChargeCoins(order);
 		
+		// 11. 응답 반환
 		return ResponseEntity.ok(new ConfirmResponse("PAID", order.getCoinAmount()));
 	}
 	
