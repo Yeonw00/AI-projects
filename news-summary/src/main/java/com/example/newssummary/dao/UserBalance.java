@@ -31,14 +31,7 @@ public class UserBalance {
 	
 	public UserBalance() {}
 	
-	public UserBalance(Long id, User user, long balance, long version) {
-		super();
-		this.id = id;
-		this.user = user;
-		this.balance = balance;
-		this.version = version;
-	}
-	
+
 	public UserBalance(User user, long balance) {
 		super();
 		this.user = user;
@@ -62,7 +55,7 @@ public class UserBalance {
 		this.balance = balance;
 	}
 	
-	public long getVersion() {
+	public Long getVersion() {
 		return version;
 	}
 	
