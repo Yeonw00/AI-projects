@@ -114,10 +114,10 @@ public class PaymentController {
 		orderRepository.save(order);
 		
 		// 10. 코인 지급
-		walletService.grantChargeCoins(order);
+		long coinsAdded = walletService.grantChargeCoins(order);
 		
 		// 11. 응답 반환
-		return ResponseEntity.ok(new ConfirmResponse("PAID", order.getCoinAmount()));
+		return ResponseEntity.ok(new ConfirmResponse("PAID", coinsAdded));
 	}
 	
 	private ResponseEntity<?> bad(String code, String message) {

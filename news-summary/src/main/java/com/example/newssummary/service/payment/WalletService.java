@@ -31,7 +31,9 @@ public class WalletService {
 	
 	
 	@Transactional
-	public void grantChargeCoins(PaymentOrder order) {
+	public long grantChargeCoins(PaymentOrder order) {
+		long coins = order.getCoinAmount();
+		
 		if(!OrderStatus.PAID.equals(order.getStatus())) {
 			throw new IllegalStateException("order is not PAID");
 		}
@@ -41,13 +43,13 @@ public class WalletService {
 		UserBalance ub = balanceRepository.findById(userId)
 				.orElse(new UserBalance(user, 0L));
 		
-		ub.increse(order.getCoinAmount());
+		ub.increse(coins);
 		balanceRepository.save(ub);
 		
 		ledgerRepository.save(new CoinLedger(
 					user, 
 					LedgerType.CHARGE,
-					order.getCoinAmount(),
+					coins,
 					ub.getBalance(),
 					order.getOrderUid(),
 					LocalDateTime.now()));
@@ -56,11 +58,13 @@ public class WalletService {
 		coinLedgerService.createEntry(
 				userId,
 				LedgerType.CHARGE,
-				order.getCoinAmount(),
+				coins,
 				"코인 충전 (" + order.getProductCode() + ")", // description
 				order.getOrderUid(),   // 멱등키 (중복 방지)
 				String.valueOf(order.getId())     // 결제 주문 ID
 		);
+		
+		return coins;
 	}
 	
 }
