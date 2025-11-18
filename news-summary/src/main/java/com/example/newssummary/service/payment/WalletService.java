@@ -1,7 +1,5 @@
 package com.example.newssummary.service.payment;
 
-import java.time.LocalDateTime;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -9,11 +7,6 @@ import com.example.newssummary.dao.CoinLedger;
 import com.example.newssummary.dao.LedgerType;
 import com.example.newssummary.dao.OrderStatus;
 import com.example.newssummary.dao.PaymentOrder;
-import com.example.newssummary.dao.User;
-import com.example.newssummary.dao.UserBalance;
-import com.example.newssummary.repository.CoinLedgerRepository;
-import com.example.newssummary.repository.PaymentOrderRepository;
-import com.example.newssummary.repository.UserBalanceRepository;
 
 import jakarta.transaction.Transactional;
 
@@ -21,41 +14,24 @@ import jakarta.transaction.Transactional;
 public class WalletService {
 
 	@Autowired
-	private UserBalanceRepository balanceRepository;
-	
-	@Autowired
-	private CoinLedgerRepository ledgerRepository;
-	
-	@Autowired
 	private CoinLedgerService coinLedgerService;
 	
 	
 	@Transactional
 	public long grantChargeCoins(PaymentOrder order) {
-		long coins = order.getCoinAmount();
 		
 		if(!OrderStatus.PAID.equals(order.getStatus())) {
 			throw new IllegalStateException("order is not PAID");
 		}
-		User user = order.getUser();
-		Long userId = user.getId();
 		
-		UserBalance ub = balanceRepository.findById(userId)
-				.orElse(new UserBalance(user, 0L));
+		long coins = order.getCoinAmount();
+		if (coins <= 0) {
+			return 0L;
+		}
 		
-		ub.increse(coins);
-		balanceRepository.save(ub);
+		Long userId = order.getUser().getId();
 		
-		ledgerRepository.save(new CoinLedger(
-					user, 
-					LedgerType.CHARGE,
-					coins,
-					ub.getBalance(),
-					order.getOrderUid(),
-					LocalDateTime.now()));
-		
-		
-		coinLedgerService.createEntry(
+		CoinLedger ledger = coinLedgerService.createEntry(
 				userId,
 				LedgerType.CHARGE,
 				coins,
@@ -64,7 +40,7 @@ public class WalletService {
 				String.valueOf(order.getId())     // 결제 주문 ID
 		);
 		
-		return coins;
+		return ledger.getAmount();
 	}
 	
 }

@@ -68,6 +68,8 @@ public class CoinLedgerService {
 
 	    switch (type) {
 	        case CHARGE:
+	        	next = current + amount;
+	        	break;
 	        case REFUND:
 	            next = current - amount;
 	            break;
