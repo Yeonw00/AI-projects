@@ -126,14 +126,14 @@ public class CoinLedgerService {
 			        e.getCreatedAt()
 			    ))
 			    .toList();
-				
+		
 		LedgerPageResponse ledgerPageResponse = new LedgerPageResponse();
 		ledgerPageResponse.setItems(items);
 		ledgerPageResponse.setTotalCount(result.getTotalElements());
 		ledgerPageResponse.setPage(page);
 		ledgerPageResponse.setSize(size);
 		ledgerPageResponse.setCurrentBalance(currentBalance);
-
+		
 		return ledgerPageResponse;
 	}
 	
