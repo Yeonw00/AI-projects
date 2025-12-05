@@ -43,9 +43,11 @@ public class PaymentOrder {
 	private LocalDateTime createdAt;
 	private LocalDateTime paidAt;
 	
+	private String paymentKey;
+	
 	
 	public PaymentOrder(Long id, String orderUid, User user, String productCode, long coinAmount, long price,
-			OrderStatus status, LocalDateTime createdAt, LocalDateTime paidAt) {
+			OrderStatus status, LocalDateTime createdAt, LocalDateTime paidAt, String paymentKey) {
 		super();
 		this.id = id;
 		this.orderUid = orderUid;
@@ -56,6 +58,7 @@ public class PaymentOrder {
 		this.status = status;
 		this.createdAt = createdAt;
 		this.paidAt = paidAt;
+		this.paymentKey = paymentKey;
 	}
 
 	public PaymentOrder() {}
@@ -150,6 +153,14 @@ public class PaymentOrder {
 		this.paidAt = paidAt;
 	}
 	
+	public String getPaymentKey() {
+		return paymentKey;
+	}
+
+	public void setPaymentKey(String paymentKey) {
+		this.paymentKey = paymentKey;
+	}
+
 	@PrePersist
 	public void onCreate() {
 		if (createdAt == null) createdAt = LocalDateTime.now();

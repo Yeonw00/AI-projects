@@ -26,6 +26,9 @@ public class RefundService {
 	@Autowired
 	private CoinLedgerService coinLedgerService;
 	
+	@Autowired
+	private TossClient tossClient;
+	
 	
 	/**
      * 주문 UID 기준 환불 (전체)

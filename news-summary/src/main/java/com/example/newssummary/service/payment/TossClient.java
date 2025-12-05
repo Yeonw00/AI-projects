@@ -11,14 +11,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
+import com.example.newssummary.dao.OrderStatus;
+import com.example.newssummary.dao.PaymentOrder;
+import com.example.newssummary.dao.UserBalance;
 import com.example.newssummary.dto.TossPaymentResponse;
+import com.example.newssummary.repository.PaymentOrderRepository;
+import com.example.newssummary.repository.UserBalanceRepository;
 
 
 @Component
@@ -28,6 +36,12 @@ public class TossClient {
 	
 	@Autowired
 	private RestTemplate restTemplate;
+	
+	@Autowired
+	private PaymentOrderRepository orderRepository;
+	
+	@Autowired
+	private UserBalanceRepository balanceRepository;
 	
 	@Value("${payments.toss.secret-key}")
 	private String secretKey;
@@ -100,4 +114,29 @@ public class TossClient {
         	throw new IllegalStateException("toss confirm unexpected error: " + e.getMessage(), e);
         }
 	}
+	
+	public TossPaymentResponse getPaymentByOrderId(String orderId) {
+		String url = baseUrl + "/v1/payments/orders/" + orderId;
+		
+		HttpHeaders headers = new HttpHeaders();
+		headers.setBasicAuth(secretKey, "");
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		
+		HttpEntity<Void> request = new HttpEntity<>(headers);
+		
+		try {
+			ResponseEntity<TossPaymentResponse> response = 
+					restTemplate.exchange(url, HttpMethod.GET, request, TossPaymentResponse.class);
+			return response.getBody();
+		} catch (Exception ex) {
+			System.err.println("[TOSS 조회 실패] orderId=" + orderId + " / " + ex.getMessage());
+			return null;
+		}
+		
+	}
+	
+//	@Transactional
+//	public RefundResultResponse refundCharge(Long userId, String orderUid, String reason) {
+//	
+//	}
 }

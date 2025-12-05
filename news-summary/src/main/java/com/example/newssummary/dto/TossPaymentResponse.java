@@ -1,6 +1,7 @@
 package com.example.newssummary.dto;
 
 public class TossPaymentResponse {
+	private String paymentKey;
 	private String orderId;
 	private String status;
 	private String method;
@@ -8,12 +9,21 @@ public class TossPaymentResponse {
 	
 	public TossPaymentResponse() {}
 
-	public TossPaymentResponse(String orderId, String status, String method, Long totalAmount) {
+	public TossPaymentResponse(String paymentKey, String orderId, String status, String method, Long totalAmount) {
 		super();
+		this.paymentKey = paymentKey;
 		this.orderId = orderId;
 		this.status = status;
 		this.method = method;
 		this.totalAmount = totalAmount;
+	}
+
+	public String getPaymentKey() {
+		return paymentKey;
+	}
+
+	public void setPaymentKey(String paymentKey) {
+		this.paymentKey = paymentKey;
 	}
 
 	public String getOrderId() {
