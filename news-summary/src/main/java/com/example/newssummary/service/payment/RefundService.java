@@ -37,7 +37,7 @@ public class RefundService {
      * @param reason     로그용 설명(선택)
      */
 	@Transactional
-	public CoinLedger refundByOrderUid(String orderUid, String requestId) {
+	public CoinLedger refundByOrderUid(String orderUid, String requestId, String reason) {
 		PaymentOrder order = orderRepository.findByOrderUid(orderUid)
 				.orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderUid));
 		
@@ -51,7 +51,6 @@ public class RefundService {
 		
 		Long userId = order.getUser().getId();
 		long coinToTakeBack = order.getCoinAmount();
-		long refundMoney = order.getPrice();
 		
 		UserBalance ub = balanceRepository.findById(userId)
 				.orElseThrow(() -> new IllegalStateException("balance not found"));
@@ -60,7 +59,13 @@ public class RefundService {
 					"Not enough coins to refund this order as-is");
 		}
 		
-		// 1 코인 회수
+		// 1 외부 PG에 전액 환불 요청 (여기서는 생략/성공 가정)
+		tossClient.cancelPayment(
+				order.getPaymentKey(),
+				reason
+		);	
+		
+		// 2 코인 회수
 		CoinLedger ledger = coinLedgerService.createEntry(
 				userId, 
 				LedgerType.REFUND, 
@@ -69,8 +74,6 @@ public class RefundService {
 				requestId, 
 				orderUid
 		);
-		
-		// 2 외부 PG에 전액 환불 요청 (여기서는 생략/성공 가정)
 		
 		// 3 주문 상태 전이
 		order.setStatus(OrderStatus.REFUNDED);
@@ -83,10 +86,10 @@ public class RefundService {
      * 주문 PK 기준 환불 (부분/전체)
      */
 	@Transactional
-	public CoinLedger refundByOrderId(Long orderId, @Nullable String requestId) {
+	public CoinLedger refundByOrderId(Long orderId, @Nullable String requestId, String reason) {
 		PaymentOrder order = orderRepository.findById(orderId)
 				.orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
-		return refundByOrderUid(order.getOrderUid(), requestId);
+		return refundByOrderUid(order.getOrderUid(), requestId, reason);
 	}
 	
 }

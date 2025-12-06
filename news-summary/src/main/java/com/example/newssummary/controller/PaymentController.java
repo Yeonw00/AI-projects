@@ -135,7 +135,7 @@ public class PaymentController {
 												@RequestParam(required = false) Long coins,
 												@RequestParam(required = false) String requestId,
 												@RequestParam(required = false) String reason) {
-		CoinLedger ledger = refundService.refundByOrderUid(orderUid, requestId);
+		CoinLedger ledger = refundService.refundByOrderUid(orderUid, requestId, reason);
 		return ResponseEntity.ok(ledger.getId());
 	}
 }

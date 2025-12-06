@@ -135,8 +135,64 @@ public class TossClient {
 		
 	}
 	
-//	@Transactional
-//	public RefundResultResponse refundCharge(Long userId, String orderUid, String reason) {
-//	
-//	}
+	@Transactional
+	public TossPaymentResponse cancelPayment(String orderUid, String reason) {
+		PaymentOrder order = orderRepository.findByOrderUid(orderUid)
+				.orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderUid));
+		
+		String paymentKey = "";
+		
+		if(order.getPaymentKey() != null) {
+			paymentKey = order.getPaymentKey();
+		}
+		
+		String url = baseUrl + "/v1/payments/" + order.getPaymentKey() + "/cancel";
+		
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+		
+		String encodedAuth = Base64.getEncoder()
+				.encodeToString((secretKey + ":").getBytes(StandardCharsets.UTF_8));
+		headers.set(HttpHeaders.AUTHORIZATION, "Basic " + encodedAuth);
+		
+		Map<String, Object> body = Map.of(
+	    		"paymentKey", paymentKey,
+	    		"cancelReason", reason
+	    );
+		
+		HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+		
+		try {
+            ResponseEntity<TossPaymentResponse> res =
+                    restTemplate.postForEntity(url, request, TossPaymentResponse.class);
+            if(!res.getStatusCode().is2xxSuccessful()) {
+            	String errMsg = "Toss refund non-2xx: " + res.getStatusCode();
+            	log.warn(errMsg);
+            	throw new IllegalStateException(errMsg);
+            }
+            
+            TossPaymentResponse resBody = res.getBody();
+            if (resBody == null) {
+            	throw new IllegalStateException("Toss refund returned empty body");
+            }
+            
+            return res.getBody();
+            
+        } catch (HttpStatusCodeException e) {
+            // Toss 에러 바디를 로깅/전달하기 용이
+        	String bodyStr = e.getResponseBodyAsString();
+        	int status = e.getRawStatusCode();
+        	log.warn("Toss refund failed: status={}, body={}", status, bodyStr);
+            throw new IllegalStateException("toss confirm failed (" + status + "): " + bodyStr, e);
+            
+        } catch (ResourceAccessException e) {
+        	log.error("Toss refund network/timeout error: {}", e.getMessage());
+        	throw new IllegalStateException("toss refund network error: " + e.getMessage(), e);
+        	
+        } catch (Exception e) {
+        	log.error("Toss refund unexpected error", e);
+        	throw new IllegalStateException("toss refund unexpected error: " + e.getMessage(), e);
+        }
+	}
 }
