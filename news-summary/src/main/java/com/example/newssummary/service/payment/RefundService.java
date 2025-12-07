@@ -65,7 +65,15 @@ public class RefundService {
 				reason
 		);	
 		
-		// 2 코인 회수
+		// 2 DB 상태 업데이트
+		order.setStatus(OrderStatus.REFUNDED);
+		orderRepository.save(order);
+		
+		// 3 유저 코인 잔액 차감
+		long coins = order.getCoinAmount();
+		ub.decrease(coins);
+		
+		// 4 ledger 기록
 		CoinLedger ledger = coinLedgerService.createEntry(
 				userId, 
 				LedgerType.REFUND, 
@@ -74,10 +82,6 @@ public class RefundService {
 				requestId, 
 				orderUid
 		);
-		
-		// 3 주문 상태 전이
-		order.setStatus(OrderStatus.REFUNDED);
-		orderRepository.save(order);
 		
 		return ledger;
 	}
