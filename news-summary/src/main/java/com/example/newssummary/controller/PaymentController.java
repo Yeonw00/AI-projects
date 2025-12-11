@@ -1,12 +1,14 @@
 package com.example.newssummary.controller;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,6 +23,7 @@ import com.example.newssummary.dto.ConfirmRequest;
 import com.example.newssummary.dto.ConfirmResponse;
 import com.example.newssummary.dto.CreateOrderRequest;
 import com.example.newssummary.dto.CreateOrderResponse;
+import com.example.newssummary.dto.RefundableOrderResponse;
 import com.example.newssummary.dto.TossPaymentResponse;
 import com.example.newssummary.repository.PaymentOrderRepository;
 import com.example.newssummary.security.CustomUserDetails;
@@ -128,6 +131,16 @@ public class PaymentController {
 		return ResponseEntity.status(HttpStatus.FORBIDDEN)
 				.body(java.util.Map.of("code", code, "message", message));
 	}
+	
+	@GetMapping("/refundable")
+	public List<RefundableOrderResponse> getRefundableOrders(@AuthenticationPrincipal CustomUserDetails userDetails) {
+		Long userId = userDetails.getUser().getId();
+		List<PaymentOrder> orders = refundService.getRefundableOrders(userId);
+		return orders.stream()
+				.map(RefundableOrderResponse::from)
+				.toList();
+	}
+
 	
 	@PostMapping("/refund/{orderUid}")
 	@Transactional

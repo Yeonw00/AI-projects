@@ -1,5 +1,7 @@
 package com.example.newssummary.service.payment;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
@@ -11,6 +13,7 @@ import com.example.newssummary.dao.OrderStatus;
 import com.example.newssummary.dao.PaymentOrder;
 import com.example.newssummary.dao.UserBalance;
 import com.example.newssummary.exception.InsufficientCoinForRefundException;
+import com.example.newssummary.repository.CoinLedgerRepository;
 import com.example.newssummary.repository.PaymentOrderRepository;
 import com.example.newssummary.repository.UserBalanceRepository;
 
@@ -27,9 +30,32 @@ public class RefundService {
 	private CoinLedgerService coinLedgerService;
 	
 	@Autowired
+	private CoinLedgerRepository ledgerRepository;
+	
+	@Autowired
 	private TossClient tossClient;
 	
 	
+	@Transactional(readOnly = true)
+	public List<PaymentOrder> getRefundableOrders(Long userId) {
+		UserBalance ub = balanceRepository.findByUserId(userId);
+		
+		long currentBalance = ub.getBalance();
+		if (currentBalance <= 0) {
+			return List.of();
+		}
+		
+		List<PaymentOrder> paidOrders =
+				orderRepository.findByUserIdAndStatusOrderByPaidAtDesc(userId, OrderStatus.PAID);
+		
+		return paidOrders.stream()
+				.filter(o -> o.getCoinAmount() > 0)
+				.filter(o -> o.getPaymentKey() != null && !o.getPaymentKey().isBlank())
+				.filter(o -> currentBalance >= o.getCoinAmount())
+				.toList();
+	}
+	
+
 	/**
      * 주문 UID 기준 환불 (전체)
      * @param orderUid   결제 고유 UID
@@ -95,5 +121,5 @@ public class RefundService {
 				.orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
 		return refundByOrderUid(order.getOrderUid(), requestId, reason);
 	}
-	
+
 }

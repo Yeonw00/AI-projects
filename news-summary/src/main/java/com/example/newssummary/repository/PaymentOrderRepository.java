@@ -12,4 +12,6 @@ public interface PaymentOrderRepository extends JpaRepository<PaymentOrder, Long
 	Optional<PaymentOrder> findByOrderUid(String OrderUid);
 	
 	List<PaymentOrder> findByPaymentKeyIsNullAndStatus(OrderStatus status);
+
+	List<PaymentOrder> findByUserIdAndStatusOrderByPaidAtDesc(Long userId, OrderStatus paid);
 }
