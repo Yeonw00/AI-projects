@@ -104,12 +104,13 @@ public class CoinLedgerService {
 	@Transactional(readOnly = true)
 	public LedgerPageResponse getUserLedger(Long userId,
 											@Nullable LedgerType type,
-											int page, int size) {
+											@Nullable LocalDateTime from,
+											@Nullable LocalDateTime to,
+											int page, 
+											int size) {
 		Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt", "id"));
 		
-		Page<CoinLedger> result = (type == null)
-				? ledgerRepository.findByUserId(userId, pageable)
-				: ledgerRepository.findByUserIdAndType(userId, type, pageable);
+		Page<CoinLedger> result = ledgerRepository.findUserLedger(userId, type, from, to, pageable);
 		
 		long currentBalance = balanceRepository.findById(userId)
 				.map(UserBalance::getBalance)
@@ -130,8 +131,8 @@ public class CoinLedgerService {
 		LedgerPageResponse ledgerPageResponse = new LedgerPageResponse();
 		ledgerPageResponse.setItems(items);
 		ledgerPageResponse.setTotalCount(result.getTotalElements());
-		ledgerPageResponse.setPage(page);
-		ledgerPageResponse.setSize(size);
+		ledgerPageResponse.setPage(result.getNumber());
+		ledgerPageResponse.setSize(result.getSize());
 		ledgerPageResponse.setCurrentBalance(currentBalance);
 		
 		return ledgerPageResponse;

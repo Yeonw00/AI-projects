@@ -2,6 +2,8 @@ package com.example.newssummary.controller;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,11 +59,20 @@ public class WalletController {
 	@GetMapping("/ledger")
 	public ResponseEntity<LedgerPageResponse> getLedger(
 			@RequestParam(name="type", required=false) LedgerType type,
+			@RequestParam(name="from", required=false)
+			@DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+			@RequestParam(name="to", required=false)
+			@DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
 			@RequestParam(name="page", defaultValue="0") int page,
 			@RequestParam(name="size", defaultValue="20") int size
 	) {
 		Long userId = getCurrentUserIdOrThrow();
-		LedgerPageResponse resp = coinLedgerService.getUserLedger(userId, type, page, size);
+		
+		LocalDateTime fromDt = (from != null) ? from.atStartOfDay() : null;
+		LocalDateTime toDt = (to != null) ? to.atTime(LocalTime.MAX) : null;
+		
+		LedgerPageResponse resp = 
+				coinLedgerService.getUserLedger(userId, type, fromDt, toDt, page, size);
 		return ResponseEntity.ok(resp);
 	}
 	
