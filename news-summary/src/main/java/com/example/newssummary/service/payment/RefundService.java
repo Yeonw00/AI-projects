@@ -1,5 +1,6 @@
 package com.example.newssummary.service.payment;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,21 +39,28 @@ public class RefundService {
 	
 	@Transactional(readOnly = true)
 	public List<PaymentOrder> getRefundableOrders(Long userId) {
-		UserBalance ub = balanceRepository.findByUserId(userId);
-		
-		long currentBalance = ub.getBalance();
-		if (currentBalance <= 0) {
-			return List.of();
-		}
+		long balance = balanceRepository.findById(userId)
+				.map(UserBalance::getBalance)
+				.orElse(0L);
 		
 		List<PaymentOrder> paidOrders =
 				orderRepository.findByUserIdAndStatusOrderByPaidAtDesc(userId, OrderStatus.PAID);
 		
-		return paidOrders.stream()
-				.filter(o -> o.getCoinAmount() > 0)
-				.filter(o -> o.getPaymentKey() != null && !o.getPaymentKey().isBlank())
-				.filter(o -> currentBalance >= o.getCoinAmount())
-				.toList();
+		List<PaymentOrder> result = new ArrayList<>();
+		long remaining = balance;
+		
+		for (PaymentOrder o : paidOrders) {
+			long coins = o.getCoinAmount();
+			
+			if (remaining >= coins) {
+				result.add(o);
+				remaining -= coins;
+			} else {
+				break;
+			}
+		}
+		
+		return result;
 	}
 	
 
