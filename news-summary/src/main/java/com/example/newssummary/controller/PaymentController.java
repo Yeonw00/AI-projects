@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.newssummary.dao.CoinLedger;
+import com.example.newssummary.dao.LedgerType;
 import com.example.newssummary.dao.OrderStatus;
 import com.example.newssummary.dao.PaymentOrder;
 import com.example.newssummary.dto.ConfirmRequest;
@@ -27,6 +28,7 @@ import com.example.newssummary.dto.RefundableOrderResponse;
 import com.example.newssummary.dto.TossPaymentResponse;
 import com.example.newssummary.repository.PaymentOrderRepository;
 import com.example.newssummary.security.CustomUserDetails;
+import com.example.newssummary.service.payment.CoinLedgerService;
 import com.example.newssummary.service.payment.OrderService;
 import com.example.newssummary.service.payment.RefundService;
 import com.example.newssummary.service.payment.TossClient;
@@ -50,6 +52,9 @@ public class PaymentController {
 	
 	@Autowired
 	private RefundService refundService;
+	
+	@Autowired
+	private CoinLedgerService ledgerService;
 	
 	@PostMapping("/orders")
 	public ResponseEntity<?> createOrder(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody CreateOrderRequest req) {
@@ -150,5 +155,17 @@ public class PaymentController {
 												@RequestParam(required = false) String reason) {
 		CoinLedger ledger = refundService.refundByOrderUid(orderUid, requestId, reason);
 		return ResponseEntity.ok(ledger.getId());
+	}
+	
+	@GetMapping("/adust/ledger")
+	public void adjustLedger() {
+		ledgerService.createEntry(
+			    1L,
+			    LedgerType.ADJUST,
+			    1000L,
+			    "adjust: fix double deduction on refund order ORD_17831a8bd3084e80",
+			    "adjust: ORD_17831a8bd3084e80" ,   // 멱등키
+			    "ORD_17831a8bd3084e80"
+		);
 	}
 }

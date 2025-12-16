@@ -79,6 +79,9 @@ public class CoinLedgerService {
 	            }
 	            next = current - amount;
 	            break;
+	        case ADJUST:
+	        	next = current + amount;
+	        	break;
 	        default:
 	            throw new IllegalArgumentException("Unknown type: " + type);
 	    }

@@ -136,17 +136,15 @@ public class TossClient {
 	}
 	
 	@Transactional
-	public TossPaymentResponse cancelPayment(String orderUid, String reason) {
-		PaymentOrder order = orderRepository.findByOrderUid(orderUid)
-				.orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderUid));
-		
-		String paymentKey = "";
-		
-		if(order.getPaymentKey() != null) {
-			paymentKey = order.getPaymentKey();
-		}
-		
-		String url = baseUrl + "/v1/payments/" + order.getPaymentKey() + "/cancel";
+	public TossPaymentResponse cancelPayment(String paymentKey, String reason) {
+		if (paymentKey == null || paymentKey.isBlank()) {
+	        throw new IllegalArgumentException("paymentKey is required");
+	    }
+	    if (reason == null || reason.isBlank()) {
+	        reason = "사용자 요청"; // 혹은 예외 처리
+	    }
+
+		String url = baseUrl + "/v1/payments/" + paymentKey + "/cancel";
 		
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);

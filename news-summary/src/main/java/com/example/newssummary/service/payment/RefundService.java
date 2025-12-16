@@ -83,6 +83,12 @@ public class RefundService {
 			throw new IllegalStateException("Order is not PAID. current=" + order.getStatus());
 		}
 		
+		Long orderId = order.getId();
+		
+		if(requestId == null || requestId.isBlank()) {
+			requestId = orderUid;
+		}
+		
 		Long userId = order.getUser().getId();
 		long coinToTakeBack = order.getCoinAmount();
 		
@@ -103,19 +109,16 @@ public class RefundService {
 		order.setStatus(OrderStatus.REFUNDED);
 		orderRepository.save(order);
 		
-		// 3 유저 코인 잔액 차감
-		long coins = order.getCoinAmount();
-		ub.decrease(coins);
-		
-		// 4 ledger 기록
+		// 3 ledger 기록(createEntry에서 코인차감)
 		CoinLedger ledger = coinLedgerService.createEntry(
 				userId, 
 				LedgerType.REFUND, 
 				coinToTakeBack, 
-				"refund for order " + orderUid, 
+				reason,
 				requestId, 
-				orderUid
+				String.valueOf(orderId)
 		);
+		
 		
 		return ledger;
 	}
