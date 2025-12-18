@@ -5,6 +5,8 @@ import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -13,14 +15,23 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "summary_requests")
+@Table(
+	name = "summary_requests",
+	uniqueConstraints = {
+		@UniqueConstraint(columnNames = "request_id")
+	}
+)
 public class SummaryRequest {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+	
+	@Column(name = "request_id", nullable = false, updatable = false)
+	private String requestId;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id")
@@ -38,20 +49,28 @@ public class SummaryRequest {
 	
 	private LocalDateTime createdAt;
 	
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private SummaryStatus status;
+	
 	@OneToMany(mappedBy = "summaryRequest")
 	private List<SavedSummary> savedSummaries;
 	
 	public SummaryRequest() {}
 	
-	public SummaryRequest(Long id, User user, String originalUrl, String originalContent, String summaryResult,
-			LocalDateTime createdAt, List<SavedSummary> savedSummaries) {
+	public SummaryRequest(Long id, String requestId, User user, String originalUrl, String originalContent,
+			String summaryResult, String sourceSite, LocalDateTime createdAt, SummaryStatus status,
+			List<SavedSummary> savedSummaries) {
 		super();
 		this.id = id;
+		this.requestId = requestId;
 		this.user = user;
 		this.originalUrl = originalUrl;
 		this.originalContent = originalContent;
 		this.summaryResult = summaryResult;
+		this.sourceSite = sourceSite;
 		this.createdAt = createdAt;
+		this.status = status;
 		this.savedSummaries = savedSummaries;
 	}
 
@@ -109,6 +128,22 @@ public class SummaryRequest {
 
 	public void setSavedSummaries(List<SavedSummary> savedSummaries) {
 		this.savedSummaries = savedSummaries;
+	}
+	
+	public String getRequestId() {
+		return requestId;
+	}
+
+	public void setRequestId(String requestId) {
+		this.requestId = requestId;
+	}
+
+	public SummaryStatus getStatus() {
+		return status;
+	}
+
+	public void setStatus(SummaryStatus status) {
+		this.status = status;
 	}
 
 	@Override
