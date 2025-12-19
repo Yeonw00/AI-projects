@@ -11,6 +11,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import com.example.newssummary.config.HuggingFaceConfig;
@@ -80,7 +81,8 @@ public class SummaryService {
 		return response.getBody();
 	}
 	
-	public String summarizeOpenAi(String content) {
+	@Transactional
+	public String summarizeOpenAi(String content, String requestId) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", openAiConfig.getApiKey());
         headers.setContentType(MediaType.APPLICATION_JSON);

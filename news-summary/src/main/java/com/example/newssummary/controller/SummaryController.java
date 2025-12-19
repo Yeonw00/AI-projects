@@ -3,6 +3,8 @@ package com.example.newssummary.controller;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,6 +27,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.example.newssummary.dao.LedgerType;
 import com.example.newssummary.dao.SavedSummary;
 import com.example.newssummary.dao.SummaryRequest;
+import com.example.newssummary.dao.SummaryStatus;
 import com.example.newssummary.dao.User;
 import com.example.newssummary.dto.SavedSummaryDTO;
 import com.example.newssummary.dto.SummaryRequestDTO;
@@ -72,47 +76,71 @@ public class SummaryController {
 		}
 	}
 	
-	@Transactional
 	@PostMapping("/openai")
 	public ResponseEntity<String> summarizeOpenAi(@RequestBody SummaryRequestDTO requestDto, 
-			@AuthenticationPrincipal CustomUserDetails userDetails) {
+			@AuthenticationPrincipal CustomUserDetails userDetails,
+			@RequestHeader(value = "X-Request-Id", required = false) String requestId) {
+		User user = userDetails.getUser();
+		if(user == null) {
+			return ResponseEntity.status(401).body("로그인이 필요합니다.");
+		}
+		
+		if (requestId == null ||  requestId.isBlank()){
+			requestId = UUID.randomUUID().toString();
+		}
+		
+		Optional<SummaryRequest> existing = summaryRequestRepository.findByRequestId(requestId);
+		
+		if (existing.isPresent()) {
+			SummaryRequest sr = existing.get();
+			
+			if (sr.getStatus() == SummaryStatus.DONE) {
+				return ResponseEntity.ok(sr.getSummaryResult());
+			}
+			
+			if (sr.getStatus() == SummaryStatus.PROCESSING) {
+				throw new ResponseStatusException(HttpStatus.CONFLICT, "Summary is stii processing");
+			}
+		}
+		
+		String content = null;
+		if(requestDto.getOriginalUrl() != null) {
+			content = summaryService.getArticleContent(requestDto.getOriginalUrl());
+		} else if(requestDto.getOriginalContent() != null) {
+			content = requestDto.getOriginalContent();
+		}
+		if (content == null || content.trim().isEmpty()) {
+		    return ResponseEntity.status(400).body("기사 본문을 추출하지 못했습니다. 다른 URL을 시도해주세요.");
+		}
+		
+		// 1. SummaryRequest 저장
+		SummaryRequest summaryRequest = new SummaryRequest();
+		summaryRequest.setRequestId(requestId);
+		summaryRequest.setUser(user);
+		summaryRequest.setOriginalUrl(requestDto.getOriginalUrl());
+		summaryRequest.setOriginalContent(content);
+		summaryRequest.setCreatedAt(LocalDateTime.now());
+		summaryRequest.setStatus(SummaryStatus.PROCESSING);
+		
+		summaryRequestRepository.save(summaryRequest);
+		
+		// 3.코인 차감 + 레저 기록(USE)
+		final long COST_COINS = 100L;
+		coinLedgerService.createEntry(
+				user.getId(), 
+				LedgerType.USE, 
+				COST_COINS, 
+				"요약 사용", 
+				requestId, 
+				null
+		);
+
 		try {
-			User user = userDetails.getUser();
-			if(user == null) {
-				return ResponseEntity.status(401).body("로그인이 필요합니다.");
-			}
+			String summary = summaryService.summarizeOpenAi(content, requestId);
 			
-			String content = null;
-			if(requestDto.getOriginalUrl() != null) {
-				content = summaryService.getArticleContent(requestDto.getOriginalUrl());
-			} else if(requestDto.getOriginalContent() != null) {
-				content = requestDto.getOriginalContent();
-			}
-			if (content == null || content.trim().isEmpty()) {
-			    return ResponseEntity.status(400).body("기사 본문을 추출하지 못했습니다. 다른 URL을 시도해주세요.");
-			}
-			String summary = summaryService.summarizeOpenAi(content);
-			
-			// 1. SummaryRequest 저장
-			SummaryRequest summaryRequest = new SummaryRequest();
-			summaryRequest.setUser(user);
-			summaryRequest.setOriginalUrl(requestDto.getOriginalUrl());
-			summaryRequest.setOriginalContent(content);
 			summaryRequest.setSummaryResult(summary);
-			summaryRequest.setCreatedAt(LocalDateTime.now());
-			
+			summaryRequest.setStatus(SummaryStatus.DONE);
 			summaryRequestRepository.save(summaryRequest);
-			
-			// 3.코인 차감 + 레저 기록(USE)
-			final long COST_COINS = 100L;
-			coinLedgerService.createEntry(
-					user.getId(), 
-					LedgerType.USE, 
-					COST_COINS, 
-					"요약 사용", 
-					"SUMMARY-" + summaryRequest.getId(), 
-					String.valueOf(summaryRequest.getId())
-			);
 			
 			// 4. SavedSummary 자동 저장
 			summaryService.createSavedSummary(user, summaryRequest);
@@ -120,6 +148,8 @@ public class SummaryController {
 			return ResponseEntity.ok(summary);
 		} catch (Exception e) {
 		    e.printStackTrace();  // 콘솔에 전체 에러 로그 출력
+		    summaryRequest.setStatus(SummaryStatus.FAILED);
+		    summaryRequestRepository.save(summaryRequest);
 		    return ResponseEntity.status(500).body("요약 실패: " + e.getMessage());
 		}
 	}
