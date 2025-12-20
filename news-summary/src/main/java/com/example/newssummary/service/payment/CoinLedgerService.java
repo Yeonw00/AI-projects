@@ -1,5 +1,6 @@
 package com.example.newssummary.service.payment;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -141,13 +142,21 @@ public class CoinLedgerService {
 		return ledgerPageResponse;
 	}
 	
-	public List<LedgerEntryResponse> getUserLedgerAll(Long userId,
-            @Nullable LedgerType type) {
-	// 페이징 없이 전부 조회하는 쿼리
-	List<CoinLedger> entities = ledgerRepository.findByUserIdAndTypeOrderByCreatedAtDesc(userId, type);
-	return entities
-            .stream()
-            .map(l -> new LedgerEntryResponse(
+	// 엑셀/PDF export 전용
+	public List<LedgerEntryResponse> getUserLedgerAll(
+	        Long userId,
+	        @Nullable LedgerType type,
+	        @Nullable LocalDate from,
+	        @Nullable LocalDate to
+	) {
+	    LocalDateTime fromDt = (from != null) ? from.atStartOfDay() : null;
+	    LocalDateTime toDt = (to != null) ? to.plusDays(1).atStartOfDay() : null;
+
+	    List<CoinLedger> entities = ledgerRepository.search(userId, type, fromDt, toDt);
+
+	    return entities
+	    	.stream()
+	        .map(l -> new LedgerEntryResponse(
                     l.getId(),
                     l.getType(),
                     l.getAmount(),
@@ -156,6 +165,6 @@ public class CoinLedgerService {
                     l.getOrderId(),
                     l.getCreatedAt()
             ))
-            .toList();
+	        .toList();
 	}
 }

@@ -16,7 +16,6 @@ import com.example.newssummary.dao.LedgerType;
 public interface CoinLedgerRepository extends JpaRepository<CoinLedger, Long> {
     Page<CoinLedger> findByUserId(Long userId, Pageable pageable);
     Optional<CoinLedger> findByRequestId(String requestId); // 멱등 처리용
-    List<CoinLedger> findByUserIdAndTypeOrderByCreatedAtDesc(Long userId, LedgerType type);
     
     @Query("""
     		select l from CoinLedger l
@@ -34,4 +33,19 @@ public interface CoinLedgerRepository extends JpaRepository<CoinLedger, Long> {
 			@Param("to") LocalDateTime to, 
 			Pageable pageable
 	);
+    
+    @Query("""
+    select l from CoinLedger l
+    where l.user.id = :userId
+    and (:type is null or l.type = :type)
+    and (:fromDt is null or l.createdAt >= : fromDt)
+    and (:toDt is null or l.createdAt < :toDt)
+    order by l.createdAt desc
+    """)
+    List<CoinLedger> search(
+    	@Param("userId") Long userId,
+    	@Param("type") LedgerType type,
+    	@Param("fromDt") LocalDateTime fromDt,
+    	@Param("toDt") LocalDateTime toDt
+    );
 }

@@ -26,7 +26,6 @@ public class CoinLedgerExcelExporter {
 			header.createCell(2).setCellValue("코인 변화");
 			header.createCell(3).setCellValue("잔액");
 			header.createCell(4).setCellValue("설명");
-			header.createCell(5).setCellValue("주문번호");
 			
 			for (LedgerEntryResponse r : rows) {
 				Row row = sheet.createRow(rowIdx++);
@@ -39,7 +38,6 @@ public class CoinLedgerExcelExporter {
 				row.createCell(2).setCellValue(signedAmount);
 				row.createCell(3).setCellValue(r.getBalanceAfter());
 				row.createCell(4).setCellValue(r.getDescription() != null ? r.getDescription() : "");
-				row.createCell(5).setCellValue(r.getOrderId() != null ? r.getOrderId() : "");
 			}
 			
 			wb.write(os);

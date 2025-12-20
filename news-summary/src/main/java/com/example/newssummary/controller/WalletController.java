@@ -94,7 +94,7 @@ public class WalletController {
 			HttpServletResponse response
 	) throws IOException {
 		Long userId = user.getUser().getId();
-		List<LedgerEntryResponse> rows = coinLedgerService.getUserLedgerAll(userId, type);
+		List<LedgerEntryResponse> rows = coinLedgerService.getUserLedgerAll(userId, type, from, to);
 		
 		if ("PDF".equalsIgnoreCase(format)) {
 			response.setContentType("application/pdf");
