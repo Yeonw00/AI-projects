@@ -42,10 +42,10 @@ public class CoinLedgerPdfExporter {
 		title.setSpacingAfter(15f);
 		document.add(title);
 		
-		// 표: 일시, 유형, 금액, 잔액, 설명, 주문ID
-		PdfPTable table = new PdfPTable(6);
+		// 표: 일시, 유형, 금액, 잔액, 설명
+		PdfPTable table = new PdfPTable(5);
 		table.setWidthPercentage(100);
-		table.setWidths(new float[]{ 2.5f, 1.3f, 1.3f, 1.3f, 3.0f, 2.0f });
+		table.setWidths(new float[]{ 2.5f, 1.3f, 1.3f, 1.3f, 3.6f });
 		
 		// 헤더 생성 헬퍼
 		addHeaderCell(table, "일시", headerFont);
@@ -53,7 +53,6 @@ public class CoinLedgerPdfExporter {
 		addHeaderCell(table, "코인 변화", headerFont);
 		addHeaderCell(table, "잔액", headerFont);
 		addHeaderCell(table, "설명", headerFont);
-		addHeaderCell(table, "주문ID", headerFont);
 		
 		// 데이터 행
 		for (LedgerEntryResponse r : rows) {
@@ -66,7 +65,6 @@ public class CoinLedgerPdfExporter {
 			addBodyCell(table, amountStr, cellFont);
 			addBodyCell(table, r.getBalanceAfter() != null ? r.getBalanceAfter().toString() : "", cellFont);
 			addBodyCell(table, r.getDescription() != null ? r.getDescription() : "", cellFont);
-			addBodyCell(table, r.getOrderId() != null ? r.getOrderId() : "", cellFont);
 		}
 		
 		document.add(table);
