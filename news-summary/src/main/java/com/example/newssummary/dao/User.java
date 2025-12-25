@@ -59,14 +59,18 @@ public class User {
 	
 	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<PaymentOrder> orders;
-	
+
+	@Column(nullable = false)
+	private String role = "USER";
+
+
 	public User() {
 		
 	}
 	
 	public User(Long id, String username, String email, String passwordHash, LocalDateTime createdAt,
 			LocalDateTime lastLoginAt, List<SummaryRequest> summaryRequests, List<ErrorLog> errorLogs,
-			List<SavedSummary> savedSummaries, UserBalance balance, List<CoinLedger> ledgers) {
+			List<SavedSummary> savedSummaries, UserBalance balance, List<CoinLedger> ledgers, String role) {
 		super();
 		this.id = id;
 		this.username = username;
@@ -79,6 +83,7 @@ public class User {
 		this.savedSummaries = savedSummaries;
 		this.balance = balance;
 		this.ledgers = ledgers;
+		this.role = role;
 	}
 
 	// Google Oauth로 가입을 위한 생성자
@@ -188,6 +193,14 @@ public class User {
 
 	public void setOrders(List<PaymentOrder> orders) {
 		this.orders = orders;
+	}
+	
+	public String getRole() {
+		return role;
+	}
+
+	public void setRole(String role) {
+		this.role = role;
 	}
 
 	@Override
