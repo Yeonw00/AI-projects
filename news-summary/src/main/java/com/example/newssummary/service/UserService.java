@@ -48,7 +48,7 @@ public class UserService {
 		
 		UserBalance balance = new UserBalance();
 		balance.setUser(user);
-		balance.setBalance(300L);
+		balance.setBalance(0L);
 		userBalanceRepository.save(balance);
 		
 		coinLedgerService.createEntry(
