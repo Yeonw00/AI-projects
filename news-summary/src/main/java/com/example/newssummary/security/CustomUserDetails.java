@@ -1,9 +1,10 @@
 package com.example.newssummary.security;
 
 import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
 
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.example.newssummary.dao.User;
@@ -21,7 +22,10 @@ public class CustomUserDetails implements UserDetails{
 	
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		return Collections.emptyList();
+		String role = user.getRole();
+		if (role == null || role.isBlank()) role = "USER";
+		
+		return List.of(new SimpleGrantedAuthority("ROLE_" + role));
 	}
 
 	@Override
