@@ -85,6 +85,7 @@ public class UserAuthController {
 		response.put("token", token);
 		response.put("username", user.getUsername());
 		response.put("email", user.getEmail());
+		response.put("role", user.getRole());
 		
 		return ResponseEntity.ok(response);
 	}
@@ -114,7 +115,8 @@ public class UserAuthController {
 	    result.put("user", Map.of(
 	    		"id", user.getId(), 
 	    		"email", user.getEmail(), 
-	    		"username", user.getUsername()
+	    		"username", user.getUsername(),
+	    		"role", user.getRole()
 	    ));
 	    return ResponseEntity.ok(result);
 	}
