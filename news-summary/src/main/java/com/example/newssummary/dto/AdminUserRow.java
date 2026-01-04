@@ -38,7 +38,7 @@ public class AdminUserRow {
 	public void setEmail(String email) {
 		this.email = email;
 	}
-	public String getuserName() {
+	public String getUserName() {
 		return userName;
 	}
 	public void setUserName(String userName) {
