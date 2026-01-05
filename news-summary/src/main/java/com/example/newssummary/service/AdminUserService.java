@@ -16,9 +16,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.newssummary.dao.LedgerType;
-import com.example.newssummary.dto.AdminUserRow;
-import com.example.newssummary.dto.LedgerEntryResponse;
 import com.example.newssummary.dto.admin.AdminUserView;
 import com.example.newssummary.repository.admin.AdminUserRepository;
 

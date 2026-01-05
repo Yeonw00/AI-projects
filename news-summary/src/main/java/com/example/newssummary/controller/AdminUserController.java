@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.newssummary.dto.PageResponse;
 import com.example.newssummary.dto.admin.AdminUserView;
 import com.example.newssummary.service.AdminUserService;
 
@@ -26,14 +27,15 @@ public class AdminUserController {
 	
 	
 	@GetMapping("/users")
-	public Page<AdminUserView> getUsers(
+	public PageResponse<AdminUserView> getUsers(
 		@RequestParam(defaultValue = "0") int page,
 		@RequestParam(defaultValue = "20") int size,
 		@RequestParam(required = false) String keyword,
 		@RequestParam(required = false) String role,
 		@RequestParam(required = false) Boolean social
 	) {
-		return adminUserService.getUsers(page, size, keyword, role, social);
+		Page<AdminUserView> pageResult =  adminUserService.getUsers(page, size, keyword, role, social);
+		return PageResponse.from(pageResult);
 	}
 	
 	@GetMapping("/users/export")
