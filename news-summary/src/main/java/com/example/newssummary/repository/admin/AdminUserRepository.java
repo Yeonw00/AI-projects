@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.example.newssummary.dao.User;
+import com.example.newssummary.dto.admin.AdminUserDetailResponse;
 import com.example.newssummary.dto.admin.AdminUserView;
 
 public interface AdminUserRepository extends JpaRepository<User, Long> {
@@ -65,4 +66,17 @@ public interface AdminUserRepository extends JpaRepository<User, Long> {
 		@Param("role") String role, 
 		@Param("social") Boolean social);
 	
+	@Query("""
+	select new com.example.newssumary.dto.admin.AdminUserDetailResponse( 
+			u.email,
+			u.username,
+			u.createdAt,
+			coalesce(ub.balance, 0),
+			(select count(sr) from SummaryRequest sr where sr.user.id = u.id)
+	)
+	from User u
+	left join UserBalance ub on ub.user.id = u.id
+	where u.id = :userId
+	""")
+	AdminUserDetailResponse findAdminUserDetail(@Param("userId") Long userId);
 }

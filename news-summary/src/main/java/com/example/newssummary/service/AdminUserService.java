@@ -16,9 +16,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.newssummary.dto.admin.AdminUserDetailResponse;
 import com.example.newssummary.dto.admin.AdminUserView;
 import com.example.newssummary.repository.admin.AdminUserRepository;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -85,6 +87,14 @@ public class AdminUserService {
 			
 			wb.write(os);
 		}
+	}
+
+	public AdminUserDetailResponse getAdminUserDetail(Long userId) {
+		AdminUserDetailResponse response = adminUserRepository.findAdminUserDetail(userId);
+	    if (response == null) {
+	        throw new EntityNotFoundException("해당 유저를 찾을 수 없습니다. ID: " + userId);
+	    }
+	    return response;
 	}
 
 }
