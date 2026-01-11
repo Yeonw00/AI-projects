@@ -15,9 +15,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
 
+import com.example.newssummary.dao.SavedSummary;
+import com.example.newssummary.dto.SavedSummaryDTO;
 import com.example.newssummary.dto.admin.AdminUserDetailResponse;
 import com.example.newssummary.dto.admin.AdminUserView;
+import com.example.newssummary.repository.SavedSummaryRepository;
 import com.example.newssummary.repository.admin.AdminUserRepository;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -30,6 +34,9 @@ public class AdminUserService {
 	
 	@Autowired
 	private AdminUserRepository adminUserRepository;
+	
+	@Autowired
+	private SavedSummaryRepository savedSummaryRepository;
 	
 	public Page<AdminUserView> getUsers(
 			int page,
@@ -95,6 +102,16 @@ public class AdminUserService {
 	        throw new EntityNotFoundException("해당 유저를 찾을 수 없습니다. ID: " + userId);
 	    }
 	    return response;
+	}
+	
+	public Page<SavedSummaryDTO> getUserSummaries(int page,int size, Long userId){
+		Pageable pageable = PageRequest.of(
+			page, 
+			size, 
+			Sort.by(Sort.Direction.DESC, "createdAt")
+		);
+		
+		return adminUserRepository.findAdminUserSummaries(userId, pageable); 
 	}
 
 }

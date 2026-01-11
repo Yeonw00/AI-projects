@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,9 +13,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.newssummary.dao.SavedSummary;
 import com.example.newssummary.dto.PageResponse;
+import com.example.newssummary.dto.SavedSummaryDTO;
 import com.example.newssummary.dto.admin.AdminUserDetailResponse;
 import com.example.newssummary.dto.admin.AdminUserView;
+import com.example.newssummary.repository.SavedSummaryRepository;
 import com.example.newssummary.service.AdminUserService;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -28,6 +32,7 @@ public class AdminUserController {
 
 	@Autowired
 	private AdminUserService adminUserService;
+
 	
 	@GetMapping("/users")
 	public PageResponse<AdminUserView> getUsers(
@@ -58,5 +63,15 @@ public class AdminUserController {
 	@GetMapping("/users/{userId}")
 	public AdminUserDetailResponse getUserDetail(@PathVariable Long userId) {
 		return adminUserService.getAdminUserDetail(userId);
+	}
+	
+	@GetMapping("/users/{userId}/summaries")
+	public PageResponse<SavedSummaryDTO> getUserSummaryList(
+			@PathVariable Long userId,
+			@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "20") int size
+	) {
+		Page<SavedSummaryDTO> pageResult = adminUserService.getUserSummaries(page, size, userId);
+		return PageResponse.from(pageResult);
 	}
 }

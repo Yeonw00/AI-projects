@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.example.newssummary.dao.User;
+import com.example.newssummary.dto.SavedSummaryDTO;
 import com.example.newssummary.dto.admin.AdminUserDetailResponse;
 import com.example.newssummary.dto.admin.AdminUserView;
 
@@ -79,4 +80,16 @@ public interface AdminUserRepository extends JpaRepository<User, Long> {
 	where u.id = :userId
 	""")
 	AdminUserDetailResponse findAdminUserDetail(@Param("userId") Long userId);
+	
+	@Query(value = """
+	select new com.example.newssumary.dto.SavedSummaryDTO(
+		ss.id,
+		ss.createdAt,
+		ss.title,
+	)
+	from SavedSummary ss
+	where ss.user.id = :userId
+	""",
+	countQuery = "select count(ss) from SavedSummary ss where ss.user.id = :userId")
+	Page<SavedSummaryDTO> findAdminUserSummaries(@Param("userId") Long userId, Pageable pageable);
 }
