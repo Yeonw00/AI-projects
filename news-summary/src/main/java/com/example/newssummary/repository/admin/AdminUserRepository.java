@@ -73,7 +73,12 @@ public interface AdminUserRepository extends JpaRepository<User, Long> {
 			u.username,
 			u.createdAt,
 			coalesce(ub.balance, 0),
-			(select count(sr) from SummaryRequest sr where sr.user.id = u.id)
+			(select count(sr) from SummaryRequest sr where sr.user.id = u.id),
+			(select max(sr.createdAt) from SummaryRequest sr where sr.user.id = u.id),
+			(select count(sr) from SummaryRequest sr 
+					where sr.user.id = u.id and sr.status = com.example.newssummary.dao.SummaryStatus.DONE),
+			(select count(sr) * 300 from SummaryRequest sr
+					where sr.user.id = u.id and sr.status = com.example.newssummary.dao.SummaryStatus.DONE)
 	)
 	from User u
 	left join UserBalance ub on ub.user.id = u.id

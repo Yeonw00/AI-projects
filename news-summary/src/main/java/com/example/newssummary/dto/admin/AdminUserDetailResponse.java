@@ -7,5 +7,8 @@ public record AdminUserDetailResponse(
 		String username,
 		LocalDateTime createdAt,
 		Long coinBalance,
-		long totalSummaryCount
+		long totalRequestCount,
+		LocalDateTime lastActivityAt,
+		long successCount,
+		long totalSpentBalance
 ) {}
