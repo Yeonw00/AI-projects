@@ -16,6 +16,13 @@ public class SavedSummaryDTO {
 	
 	public SavedSummaryDTO() {}
 	
+	public SavedSummaryDTO(Long id, LocalDateTime createdAt, LocalDateTime savedAt, String title) {
+		this.id = id;
+		this.createdAt = createdAt;
+		this.savedAt = savedAt;
+		this.title = title;
+	}
+	
 	public SavedSummaryDTO(SavedSummary savedSummary) {
 		this.id = savedSummary.getId();
 		this.url = savedSummary.getSummaryRequest().getOriginalUrl();

@@ -68,7 +68,7 @@ public interface AdminUserRepository extends JpaRepository<User, Long> {
 		@Param("social") Boolean social);
 	
 	@Query("""
-	select new com.example.newssumary.dto.admin.AdminUserDetailResponse( 
+	select new com.example.newssummary.dto.admin.AdminUserDetailResponse( 
 			u.email,
 			u.username,
 			u.createdAt,
@@ -87,12 +87,14 @@ public interface AdminUserRepository extends JpaRepository<User, Long> {
 	AdminUserDetailResponse findAdminUserDetail(@Param("userId") Long userId);
 	
 	@Query(value = """
-	select new com.example.newssumary.dto.SavedSummaryDTO(
+	select new com.example.newssummary.dto.SavedSummaryDTO(
 		ss.id,
-		ss.createdAt,
-		ss.title,
+		ss.summaryRequest.createdAt,
+		ss.savedAt,
+		ss.title
 	)
 	from SavedSummary ss
+	join ss.summaryRequest sr
 	where ss.user.id = :userId
 	""",
 	countQuery = "select count(ss) from SavedSummary ss where ss.user.id = :userId")
