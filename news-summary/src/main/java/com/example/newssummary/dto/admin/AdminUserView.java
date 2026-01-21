@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 public interface AdminUserView {
 	Long getId();
 	String getEmail();
-	String getUserName();
+	String getUsername();
 	String getRole();
 	Boolean getSocialLogin();
 	Long getCoinBalance();

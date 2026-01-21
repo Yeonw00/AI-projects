@@ -6,7 +6,7 @@ public class AdminUserRow {
 	
 	private Long id;
 	private String email;
-	private String userName;
+	private String username;
 	private String role;
 	private boolean socialLogin;
 	private long coinBalance;
@@ -14,12 +14,12 @@ public class AdminUserRow {
 	
 	public AdminUserRow() {}
 	
-	public AdminUserRow(Long id, String email, String userName, String role, boolean socialLogin, long coinBalance,
+	public AdminUserRow(Long id, String email, String username, String role, boolean socialLogin, long coinBalance,
 			LocalDateTime createdAt) {
 		super();
 		this.id = id;
 		this.email = email;
-		this.userName = userName;
+		this.username = username;
 		this.role = role;
 		this.socialLogin = socialLogin;
 		this.coinBalance = coinBalance;
@@ -38,11 +38,11 @@ public class AdminUserRow {
 	public void setEmail(String email) {
 		this.email = email;
 	}
-	public String getUserName() {
-		return userName;
+	public String getUsername() {
+		return username;
 	}
-	public void setUserName(String userName) {
-		this.userName = userName;
+	public void setUsername(String username) {
+		this.username = username;
 	}
 	public String getRole() {
 		return role;
