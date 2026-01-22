@@ -85,7 +85,7 @@ public class AdminUserService {
 				Row row = sheet.createRow(rowIdx++);
 				row.createCell(0).setCellValue(r.getId());
 				row.createCell(1).setCellValue(r.getEmail());
-				row.createCell(2).setCellValue(r.getUserName());
+				row.createCell(2).setCellValue(r.getUsername());
 				row.createCell(3).setCellValue(r.getRole());
 				row.createCell(4).setCellValue(r.getSocialLogin());
 				row.createCell(5).setCellValue(r.getCoinBalance());
