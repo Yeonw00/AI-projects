@@ -89,7 +89,7 @@ public interface AdminUserRepository extends JpaRepository<User, Long> {
 	@Query(value = """
 	select new com.example.newssummary.dto.SavedSummaryDTO(
 		ss.id,
-		ss.summaryRequest.createdAt,
+		sr.createdAt,
 		ss.savedAt,
 		ss.title
 	)

@@ -108,7 +108,7 @@ public class AdminUserService {
 		Pageable pageable = PageRequest.of(
 			page, 
 			size, 
-			Sort.by(Sort.Direction.DESC, "createdAt")
+			Sort.by(Sort.Direction.DESC, "savedAt")
 		);
 		
 		return adminUserRepository.findAdminUserSummaries(userId, pageable); 
