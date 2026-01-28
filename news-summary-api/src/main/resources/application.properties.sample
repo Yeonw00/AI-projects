@@ -1,12 +1,12 @@
 spring.application.name=news-summary
 huggingface.api-url=https://api-inference.huggingface.co/models/facebook/bart-large-cnn
-huggingface.api-token=Bearer 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
-openai.api-key=Bearer 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
+huggingface.api-token=YOUR_HUGGINGFACE_API_TOKEN_HERE
+openai.api-key=YOUR_OPENAI_API_KEY_HERE
 
 # database connection setting
-spring.datasource.url=jdbc:mysql://localhost:3306/news_summary?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-spring.datasource.username=root
-spring.datasource.password=dummypassword
+spring.datasource.url=jdbc:mysql://localhost:3306/YOUR_DB_NAME?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+spring.datasource.username=YOUR_USERNAME
+spring.datasource.password=YOUR_PASSWORD
 spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 
 # JPA setting
@@ -17,7 +17,7 @@ spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect
 # console sql formatting array(option)
 spring.jpa.properties.hibernate.format_sql=true
 
-jwt.secret=sWtfZFxBJRb79IzBfoEhWvaOLKUVg9cwKJmKjkZiTBBpFF/rrJmvKmUcBEI=
+jwt.secret=YOUR_VERY_LONG_SECRET_KEY_FOR_JWT
 
 logging.file.name=logs/app.log
 logging.level.com.example.newssummary=DEBUG
